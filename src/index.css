@@ -1,0 +1,115 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  --color-mine-black: #0F1419;
+  --color-mine-black-light: #1A2028;
+  --color-slate: #2D3A45;
+  --color-slate-light: #3D4E5C;
+  --color-slate-lighter: #4D6070;
+  --color-amber: #F0A202;
+  --color-amber-light: #F5BE4D;
+  --color-amber-dim: rgba(240, 162, 2, 0.15);
+  --color-green: #2E7D4F;
+  --color-green-light: #3D9963;
+  --color-green-dim: rgba(46, 125, 79, 0.15);
+  --color-red: #C1292E;
+  --color-red-light: #D9484D;
+  --color-red-dim: rgba(193, 41, 46, 0.15);
+  --color-sand: #EDE6DA;
+  --color-sand-dark: #D6CFC3;
+  --color-surface: #151C24;
+  --color-surface-raised: #1C2530;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-light: rgba(255, 255, 255, 0.12);
+  --color-text-primary: #EDE6DA;
+  --color-text-secondary: #8E99A4;
+  --color-text-muted: #5C6A77;
+
+  --font-heading: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-mine-black);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-mine-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-slate);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-slate-light);
+}
+
+/* Recharts overrides */
+.recharts-cartesian-axis-tick-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--color-text-secondary);
+}
+
+.recharts-legend-item-text {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-secondary) !important;
+}
+
+/* MapLibre overrides */
+.maplibregl-popup-content {
+  background: var(--color-surface-raised) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border-light) !important;
+  border-radius: 4px !important;
+  padding: 12px !important;
+  font-family: var(--font-body) !important;
+  font-size: 13px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--color-surface-raised) !important;
+}
+
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
