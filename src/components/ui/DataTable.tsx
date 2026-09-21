@@ -14,6 +14,7 @@ export interface DataTableProps<T> {
   isLoading?: boolean
   emptyMessage?: string
   className?: string
+  onRowClick?: (item: T) => void
 }
 
 export function DataTable<T>({
@@ -22,6 +23,7 @@ export function DataTable<T>({
   isLoading,
   emptyMessage = 'No data available',
   className,
+  onRowClick,
 }: DataTableProps<T>) {
   return (
     <div className={cn('w-full overflow-auto border border-border rounded-md bg-mine-black', className)}>
@@ -53,7 +55,11 @@ export function DataTable<T>({
             </tr>
           ) : (
             data.map((row, rowIndex) => (
-              <tr key={rowIndex} className="hover:bg-surface-raised transition-colors group">
+              <tr 
+                key={rowIndex} 
+                className={cn('hover:bg-surface-raised transition-colors group', onRowClick && 'cursor-pointer')}
+                onClick={() => onRowClick && onRowClick(row)}
+              >
                 {columns.map((col, colIndex) => (
                   <td key={colIndex} className={cn('px-4 py-3 align-middle', col.className)}>
                     {col.cell ? col.cell(row) : (row as any)[col.accessorKey as string]}

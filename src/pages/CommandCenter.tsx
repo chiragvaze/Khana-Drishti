@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -6,11 +5,11 @@ import {
   ClipboardCheck,
   ShieldAlert,
   Brain,
-  Activity,
-  Clock,
   ArrowRight,
   Flame,
   FileDown,
+  CheckCircle2,
+  ListTodo
 } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -20,14 +19,12 @@ import { KPICard } from '../components/shared/KPICard'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
-import { Card, CardContent } from '../components/ui/Card'
+import { DataTable } from '../components/ui/DataTable'
 import { useToast } from '../components/ui/ToastProvider'
 import { mines } from '../data/mines'
-import { riskAlerts, recentActivity } from '../data/risk-alerts'
+import { riskAlerts } from '../data/risk-alerts'
 import { capas } from '../data/capas'
-import { observations } from '../data/observations'
-import { aiInsights } from '../data/ai-insights'
-import { formatDateTime, daysUntil } from '../lib/utils'
+import { inspections } from '../data/inspections'
 
 const complianceTrend = [
   { month: 'Apr', score: 74 },
@@ -51,26 +48,13 @@ const capaStatusData = [
   { status: 'Closed', count: 2, color: '#2E7D4F' },
 ]
 
-const inspectionFrequency = [
-  { week: 'W33', count: 3 },
-  { week: 'W34', count: 5 },
-  { week: 'W35', count: 2 },
-  { week: 'W36', count: 4 },
-  { week: 'W37', count: 6 },
-  { week: 'W38', count: 4 },
-]
-
 export default function CommandCenter() {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const [selectedAlertTab, setSelectedAlertTab] = useState<'active' | 'acknowledged'>('active')
 
-  const activeAlerts = riskAlerts.filter((a) => a.status === 'ACTIVE')
-  const acknowledgedAlerts = riskAlerts.filter((a) => a.status === 'ACKNOWLEDGED')
-  const displayAlerts = selectedAlertTab === 'active' ? activeAlerts : acknowledgedAlerts
-
-  const openCAPAs = capas.filter((c) => c.status !== 'CLOSED')
-  const highRiskObs = observations.filter((o) => o.riskLevel === 'HIGH')
+  const highRiskMines = mines.filter(m => m.riskLevel === 'HIGH')
+  const openCAPAs = capas.filter(c => c.status !== 'CLOSED')
+  const overdueCAPAs = capas.filter(c => c.status === 'OVERDUE')
   const avgCompliance = Math.round(mines.reduce((sum, m) => sum + m.complianceScore, 0) / mines.length)
 
   const handleExport = () => {
@@ -79,17 +63,10 @@ export default function CommandCenter() {
       description: 'The dashboard report is being generated.',
       type: 'info'
     })
-    setTimeout(() => {
-      toast({
-        title: 'Export Complete',
-        description: 'Dashboard report downloaded successfully.',
-        type: 'success'
-      })
-    }, 2000)
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader 
         title="Command Center" 
         description="Real-time overview of mine safety and compliance across all operations."
@@ -100,95 +77,130 @@ export default function CommandCenter() {
         </Button>
       </PageHeader>
 
-      {/* Critical Alert Banner */}
-      <Card className="bg-red-dim border-red/30">
-        <CardContent className="p-4 flex items-start gap-3">
-          <div className="p-2 bg-red/20 rounded">
-            <Flame className="w-5 h-5 text-red" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-heading text-[15px] font-bold text-red-light tracking-wide">
-                CRITICAL ALERT — IMMEDIATE ACTION REQUIRED
-              </h3>
-              <StatusBadge status="HIGH" />
-            </div>
-            <p className="text-[13px] text-text-primary leading-relaxed">
-              Unsafe ventilation condition detected at <strong>WCL-04 (Wani Opencast Extension)</strong>, Panel 3B.
-              AI analysis predicts methane levels will exceed 1.25% statutory threshold within 18 hours.
-              CAPA assigned to Sharma Mining Services — SLA: {daysUntil('2026-09-22')} days remaining.
-            </p>
-            <div className="flex gap-2 mt-3">
-              <Button
-                onClick={() => navigate('/mines/mine-wcl-04')}
-                variant="destructive"
-                size="sm"
-                className="gap-1"
-              >
-                View Mine Detail <ArrowRight className="w-3 h-3" />
-              </Button>
-              <Button
-                onClick={() => navigate('/capa')}
-                variant="outline"
-                size="sm"
-              >
-                View CAPA
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* KPI Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          label="Total Mines"
+          label="Mines Monitored"
           value={mines.length}
-          subtitle="monitored"
+          subtitle="Active tracking"
           icon={<Factory className="w-4 h-4" />}
           trend="neutral"
           trendValue="Stable"
         />
         <KPICard
-          label="Active Inspections"
-          value={2}
-          subtitle="this week"
-          icon={<ClipboardCheck className="w-4 h-4" />}
-          trend="up"
-          trendValue="+1 from last week"
-          trendPositive
-        />
-        <KPICard
-          label="Open CAPAs"
-          value={openCAPAs.length}
-          subtitle={`${capas.filter(c => c.status === 'OVERDUE').length} overdue`}
+          label="High Risk Mines"
+          value={highRiskMines.length}
+          subtitle="Require attention"
           icon={<AlertTriangle className="w-4 h-4" />}
-          variant="warning"
           trend="up"
-          trendValue="+2 this month"
-          trendPositive={false}
-        />
-        <KPICard
-          label="Compliance Score"
-          value={`${avgCompliance}%`}
-          subtitle="avg. across mines"
-          icon={<ShieldAlert className="w-4 h-4" />}
-          variant={avgCompliance >= 80 ? 'success' : avgCompliance >= 60 ? 'warning' : 'danger'}
-          trend="down"
-          trendValue="-4% from Aug"
-          trendPositive={false}
-        />
-        <KPICard
-          label="Critical Alerts"
-          value={activeAlerts.filter(a => a.severity === 'HIGH').length}
-          subtitle="active"
-          icon={<Flame className="w-4 h-4" />}
+          trendValue="+1 this month"
           variant="danger"
+        />
+        <KPICard
+          label="Open CAPA"
+          value={openCAPAs.length}
+          subtitle={`${overdueCAPAs.length} overdue`}
+          icon={<ClipboardCheck className="w-4 h-4" />}
+          trend="down"
+          trendValue="-2 this week"
+          variant="warning"
+        />
+        <KPICard
+          label="Compliance Rate"
+          value={`${avgCompliance}%`}
+          subtitle="Network average"
+          icon={<ShieldAlert className="w-4 h-4" />}
+          trend="up"
+          trendValue="+1.2% from Aug"
+          variant="success"
         />
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3">
+      {/* Main Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Risk Overview */}
+        <div className="lg:col-span-2 bg-surface-raised border border-border rounded-lg overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-border bg-mine-black/30">
+            <h3 className="text-[13px] font-heading font-semibold text-text-secondary tracking-wider">NETWORK RISK OVERVIEW</h3>
+          </div>
+          <div className="p-6 flex-1 border-b border-border min-h-[300px] flex flex-col justify-center relative bg-mine-black/20">
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber/20 via-mine-black to-mine-black" />
+            <div className="relative w-full max-w-2xl mx-auto space-y-3 z-10">
+              <div 
+                className="bg-red-dim border border-red/30 p-4 rounded-lg flex items-center justify-between cursor-pointer hover:bg-red/10 transition-colors shadow-lg shadow-red/5"
+                onClick={() => navigate('/mines/mine-wcl-04')}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red animate-pulse" />
+                  <div>
+                    <h4 className="text-[15px] font-medium text-text-primary font-mono tracking-wide">WCL-04 Wani Opencast Extension</h4>
+                    <p className="text-[12px] text-red-light mt-0.5 font-medium">Critical Risk • 65% Compliance</p>
+                  </div>
+                </div>
+                <Button variant="destructive" size="sm">View Mine</Button>
+              </div>
+              <div 
+                className="bg-amber-dim border border-amber/30 p-4 rounded-lg flex items-center justify-between opacity-90 cursor-pointer hover:opacity-100 transition-opacity"
+                onClick={() => navigate('/mines/mine-ncl-12')}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-amber" />
+                  <div>
+                    <h4 className="text-[14px] font-medium text-text-primary font-mono tracking-wide">NCL-12 Jayant Opencast Mine</h4>
+                    <p className="text-[12px] text-amber-light mt-0.5">Medium Risk • 74% Compliance</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">View Mine</Button>
+              </div>
+              <div 
+                className="bg-amber-dim border border-amber/30 p-4 rounded-lg flex items-center justify-between opacity-80 cursor-pointer hover:opacity-100 transition-opacity"
+                onClick={() => navigate('/mines/mine-ecl-03')}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-amber" />
+                  <div>
+                    <h4 className="text-[14px] font-medium text-text-primary font-mono tracking-wide">ECL-03 Rajmahal Opencast Project</h4>
+                    <p className="text-[12px] text-amber-light mt-0.5">Medium Risk • 72% Compliance</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">View Mine</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Risk Alerts */}
+        <div className="lg:col-span-1 bg-surface-raised border border-border rounded-lg flex flex-col">
+          <div className="p-4 border-b border-border bg-red-dim/20">
+            <h3 className="text-[13px] font-heading font-semibold text-text-primary tracking-wider flex items-center gap-2">
+              <Flame className="w-4 h-4 text-amber animate-pulse" /> AI RISK ALERTS
+            </h3>
+          </div>
+          <div className="divide-y divide-border overflow-y-auto max-h-[300px]">
+            {riskAlerts.slice(0,4).map(alert => (
+              <div 
+                key={alert.id} 
+                className="p-4 hover:bg-mine-black/50 transition-colors cursor-pointer group"
+                onClick={() => {
+                  if (alert.mineId === 'mine-wcl-04') navigate('/mines/mine-wcl-04')
+                  else if (alert.title.includes('CAPA')) navigate('/capa')
+                  else navigate('/compliance')
+                }}
+              >
+                <div className="flex items-start gap-2 mb-1.5">
+                  <StatusBadge status={alert.severity} />
+                  <span className="text-[10px] text-text-muted font-mono mt-0.5">{alert.mineName}</span>
+                </div>
+                <p className="text-[13px] font-medium text-text-primary mb-1.5 group-hover:text-amber transition-colors">{alert.title}</p>
+                <p className="text-[11px] text-text-muted line-clamp-2 leading-relaxed">{alert.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Compliance Trend */}
         <div className="bg-surface-raised border border-border rounded p-4">
           <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-3">
@@ -196,34 +208,15 @@ export default function CommandCenter() {
           </h3>
           <ResponsiveContainer width="100%" height={160}>
             <LineChart data={complianceTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis domain={[60, 100]} tick={{ fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#808f9f' }} axisLine={false} tickLine={false} />
+              <YAxis domain={[60, 100]} tick={{ fontSize: 11, fill: '#808f9f' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#1C2530', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, fontSize: 12 }}
                 labelStyle={{ color: '#EDE6DA' }}
               />
-              <Line type="monotone" dataKey="score" stroke="#F0A202" strokeWidth={2} dot={{ r: 3, fill: '#F0A202' }} />
+              <Line type="monotone" dataKey="score" stroke="#F0A202" strokeWidth={2} dot={{ r: 4, fill: '#F0A202', strokeWidth: 0 }} activeDot={{ r: 6 }} />
             </LineChart>
-          </ResponsiveContainer>
-          <p className="text-[10px] text-text-muted mt-1">Sample data — Demo projection</p>
-        </div>
-
-        {/* Risk Distribution */}
-        <div className="bg-surface-raised border border-border rounded p-4">
-          <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-3">
-            MINE RISK DISTRIBUTION
-          </h3>
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie data={riskDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none">
-                {riskDistribution.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ background: '#1C2530', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, fontSize: 12 }} />
-              <Legend iconType="square" iconSize={8} />
-            </PieChart>
           </ResponsiveContainer>
         </div>
 
@@ -234,11 +227,11 @@ export default function CommandCenter() {
           </h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={capaStatusData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="status" tick={{ fontSize: 10 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: '#1C2530', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, fontSize: 12 }} />
-              <Bar dataKey="count" radius={[2, 2, 0, 0]}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="status" tick={{ fontSize: 10, fill: '#808f9f' }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#808f9f' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: '#1C2530', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, fontSize: 12 }} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+              <Bar dataKey="count" radius={[2, 2, 0, 0]} maxBarSize={40}>
                 {capaStatusData.map((entry, i) => (
                   <Cell key={i} fill={entry.color} />
                 ))}
@@ -247,213 +240,131 @@ export default function CommandCenter() {
           </ResponsiveContainer>
         </div>
 
-        {/* Inspection Frequency */}
+        {/* Risk Distribution */}
         <div className="bg-surface-raised border border-border rounded p-4">
           <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-3">
-            WEEKLY INSPECTIONS
+            RISK DISTRIBUTION
           </h3>
           <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={inspectionFrequency}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="week" tick={{ fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+            <PieChart>
+              <Pie data={riskDistribution} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
+                {riskDistribution.map((entry, i) => (
+                  <Cell key={i} fill={entry.color} />
+                ))}
+              </Pie>
               <Tooltip contentStyle={{ background: '#1C2530', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, fontSize: 12 }} />
-              <Bar dataKey="count" fill="#2E7D4F" radius={[2, 2, 0, 0]} />
-            </BarChart>
+              <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+            </PieChart>
           </ResponsiveContainer>
-          <p className="text-[10px] text-text-muted mt-1">Sample data — Demo projection</p>
         </div>
       </div>
 
-      {/* Lower Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* Risk Alerts */}
-        <div className="bg-surface-raised border border-border rounded overflow-hidden">
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+      {/* Recent Inspections Table */}
+      <div className="bg-surface-raised border border-border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider">RECENT INSPECTIONS</h3>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/inspections')}>View All</Button>
+        </div>
+        <DataTable
+          columns={[
+            { header: 'ID', accessorKey: 'id', cell: (val) => <span className="font-mono text-xs">{String(val.id).split('-')[0] + '-' + String(val.id).split('-')[1]}</span> },
+            { header: 'Mine', accessorKey: 'mineCode', cell: (val) => <span className="font-bold">{String(val.mineCode)}</span> },
+            { header: 'Inspector', accessorKey: 'inspector' },
+            { header: 'Type', accessorKey: 'type', cell: (val) => <span className="text-xs uppercase tracking-wider text-text-secondary">{String(val.type).replace('_', ' ')}</span> },
+            { header: 'Risk', accessorKey: 'riskLevel', cell: (val) => <StatusBadge status={val.riskLevel as 'HIGH' | 'MEDIUM' | 'LOW'} /> },
+            { header: 'Status', accessorKey: 'status', cell: (val) => <span className="text-xs">{String(val.status)}</span> },
+            { header: 'Date', accessorKey: 'date' },
+          ]}
+          data={inspections.slice(0, 5)}
+          onRowClick={() => navigate('/inspections')}
+        />
+      </div>
+
+      {/* Priority Actions & AI Insight */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-10">
+        {/* Priority Actions */}
+        <div className="bg-surface-raised border border-border rounded-lg">
+          <div className="px-4 py-3 border-b border-border">
             <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber" />
-              RISK ALERTS
+              <ListTodo className="w-4 h-4 text-amber" />
+              PRIORITY ACTIONS
             </h3>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setSelectedAlertTab('active')}
-                className={`px-2 py-0.5 text-[10px] rounded ${selectedAlertTab === 'active' ? 'bg-amber-dim text-amber' : 'text-text-muted hover:text-text-secondary'}`}
-              >
-                Active ({activeAlerts.length})
-              </button>
-              <button
-                onClick={() => setSelectedAlertTab('acknowledged')}
-                className={`px-2 py-0.5 text-[10px] rounded ${selectedAlertTab === 'acknowledged' ? 'bg-amber-dim text-amber' : 'text-text-muted hover:text-text-secondary'}`}
-              >
-                Acknowledged ({acknowledgedAlerts.length})
-              </button>
+          </div>
+          <div className="divide-y divide-border">
+            <div className="p-4 hover:bg-mine-black/50 cursor-pointer flex items-center justify-between group" onClick={() => navigate('/capa')}>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-red-dim border border-red/20 flex items-center justify-center text-red font-bold text-lg shadow-inner">
+                  3
+                </div>
+                <div>
+                  <p className="text-[14px] font-medium text-text-primary">CAPA require escalation</p>
+                  <p className="text-[12px] text-text-muted mt-0.5">Overdue by more than 7 days</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-amber transition-colors" />
+            </div>
+            <div className="p-4 hover:bg-mine-black/50 cursor-pointer flex items-center justify-between group" onClick={() => navigate('/inspections')}>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-amber-dim border border-amber/20 flex items-center justify-center text-amber font-bold text-lg shadow-inner">
+                  2
+                </div>
+                <div>
+                  <p className="text-[14px] font-medium text-text-primary">Inspections require review</p>
+                  <p className="text-[12px] text-text-muted mt-0.5">High risk findings identified</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-amber transition-colors" />
+            </div>
+            <div className="p-4 hover:bg-mine-black/50 cursor-pointer flex items-center justify-between group" onClick={() => navigate('/contractors')}>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-mine-black border border-border flex items-center justify-center text-text-secondary font-bold text-lg shadow-inner">
+                  1
+                </div>
+                <div>
+                  <p className="text-[14px] font-medium text-text-primary">Contractor requires compliance review</p>
+                  <p className="text-[12px] text-text-muted mt-0.5">Documentation expiring soon</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-amber transition-colors" />
             </div>
           </div>
-          <div className="divide-y divide-border max-h-[320px] overflow-y-auto">
-            {displayAlerts.map((alert) => (
-              <div key={alert.id} className="px-4 py-3 hover:bg-mine-black/50 transition-colors cursor-pointer">
-                <div className="flex items-start gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${alert.severity === 'HIGH' ? 'bg-red' : 'bg-amber'}`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-text-primary truncate">{alert.title}</p>
-                    <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{alert.description}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <StatusBadge status={alert.severity} />
-                      <span className="text-[10px] text-text-muted font-mono">{alert.mineName}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Critical Observations */}
-        <div className="bg-surface-raised border border-border rounded overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-red" />
-              HIGH-RISK OBSERVATIONS
-            </h3>
-          </div>
-          <div className="divide-y divide-border max-h-[320px] overflow-y-auto">
-            {highRiskObs.map((obs) => (
-              <div key={obs.id} className="px-4 py-3 hover:bg-mine-black/50 transition-colors cursor-pointer">
-                <p className="text-[12px] font-medium text-text-primary">{obs.title}</p>
-                <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{obs.description}</p>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <StatusBadge status={obs.status} />
-                  <span className="text-[10px] text-text-muted font-mono">{obs.mineName}</span>
-                  {obs.aiVerified && (
-                    <span className="text-[10px] text-green-light flex items-center gap-0.5">
-                      <Brain className="w-3 h-3" /> AI Verified ({obs.aiConfidence}%)
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-surface-raised border border-border rounded overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider flex items-center gap-2">
-              <Activity className="w-4 h-4 text-amber" />
-              RECENT ACTIVITY
-            </h3>
-          </div>
-          <div className="divide-y divide-border max-h-[320px] overflow-y-auto">
-            {recentActivity.slice(0, 8).map((item) => (
-              <div key={item.id} className="px-4 py-3 hover:bg-mine-black/50 transition-colors cursor-pointer">
-                <div className="flex items-start gap-2">
-                  <div className="mt-0.5">{getActivityIcon(item.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-text-primary">{item.title}</p>
-                    <p className="text-[11px] text-text-muted mt-0.5 line-clamp-1">{item.description}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock className="w-3 h-3 text-text-muted" />
-                      <span className="text-[10px] text-text-muted font-mono">{formatDateTime(item.timestamp)}</span>
-                      <span className="text-[10px] text-text-muted">• {item.mineName}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* AI Insights + SLA Tracker */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* AI Insights */}
-        <div className="bg-surface-raised border border-border rounded overflow-hidden">
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+        {/* AI Insight */}
+        <div className="bg-surface-raised border border-border rounded-lg relative overflow-hidden flex flex-col">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+          <div className="px-4 py-3 border-b border-border relative z-10 bg-mine-black/40">
             <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider flex items-center gap-2">
               <Brain className="w-4 h-4 text-amber" />
-              LATEST AI INSIGHTS
+              AI INSIGHT
             </h3>
-            <button onClick={() => navigate('/ai-insights')} className="text-[11px] text-amber hover:text-amber-light flex items-center gap-1">
-              View All <ArrowRight className="w-3 h-3" />
-            </button>
           </div>
-          <div className="divide-y divide-border">
-            {aiInsights.slice(0, 3).map((insight) => (
-              <div key={insight.id} className="px-4 py-3 hover:bg-mine-black/50 transition-colors cursor-pointer">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[12px] font-medium text-text-primary flex-1">{insight.title}</p>
-                  <StatusBadge status={insight.severity} />
-                </div>
-                <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-text-muted">Confidence:</span>
-                    <div className="w-16 h-1.5 bg-mine-black rounded overflow-hidden">
-                      <div
-                        className="h-full bg-amber rounded"
-                        style={{ width: `${insight.confidence}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] font-mono text-amber">{insight.confidence}%</span>
-                  </div>
-                  <span className="text-[10px] text-text-muted font-mono">{insight.mineName}</span>
-                </div>
+          <div className="p-6 relative z-10 flex-1 flex flex-col justify-center">
+            <p className="text-[16px] leading-relaxed text-text-primary mb-6 font-medium tracking-wide">
+              "Risk concentration has increased at <span className="text-amber underline decoration-amber/30 underline-offset-4 cursor-pointer hover:bg-amber-dim transition-colors" onClick={() => navigate('/mines/mine-wcl-04')}>WCL-04</span> due to overdue ventilation corrective actions."
+            </p>
+            <div className="flex flex-wrap items-center gap-5 text-[12px] bg-mine-black/50 p-4 rounded-md border border-border/50 shadow-inner">
+              <div className="flex items-center gap-2">
+                <span className="text-text-muted">Confidence:</span>
+                <span className="text-green font-mono font-medium flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> 94%</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* SLA Tracker */}
-        <div className="bg-surface-raised border border-border rounded overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber" />
-              CAPA SLA TRACKER
-            </h3>
-          </div>
-          <div className="divide-y divide-border">
-            {openCAPAs.map((capa) => {
-              const daysLeft = daysUntil(capa.dueDate)
-              const isOverdue = daysLeft < 0
-              return (
-                <div key={capa.id} className="px-4 py-3 hover:bg-mine-black/50 transition-colors cursor-pointer" onClick={() => navigate('/capa')}>
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-medium text-text-primary truncate">{capa.title}</p>
-                      <p className="text-[11px] text-text-muted mt-0.5">{capa.mineName} • {capa.assignedContractor}</p>
-                    </div>
-                    <StatusBadge status={capa.status} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-mine-black rounded overflow-hidden">
-                      <div
-                        className={`h-full rounded ${isOverdue ? 'bg-red' : daysLeft <= 2 ? 'bg-amber' : 'bg-green'}`}
-                        style={{ width: `${capa.progressPercent}%` }}
-                      />
-                    </div>
-                    <span className={`text-[11px] font-mono ${isOverdue ? 'text-red' : daysLeft <= 2 ? 'text-amber' : 'text-green'}`}>
-                      {isOverdue ? `${Math.abs(daysLeft)}d overdue` : `${daysLeft}d left`}
-                    </span>
-                    <span className="text-[10px] text-text-muted font-mono">{capa.progressPercent}%</span>
-                  </div>
-                </div>
-              )
-            })}
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-2">
+                <span className="text-text-muted">Evidence:</span>
+                <span className="text-text-primary font-mono cursor-pointer hover:text-amber underline decoration-dashed underline-offset-2" onClick={() => navigate('/evidence')}>KD-102</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-2">
+                <span className="text-text-muted">Obligation:</span>
+                <span className="text-text-primary hover:text-amber cursor-pointer transition-colors" onClick={() => navigate('/compliance')}>CMR 2017, Ch-XI</span>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-border/50 text-[10px] text-text-muted flex items-center justify-end uppercase tracking-wider font-semibold">
+              Prototype / Demo AI Output
+            </div>
           </div>
         </div>
       </div>
     </div>
   )
-}
-
-function getActivityIcon(type: string) {
-  const iconClass = 'w-3.5 h-3.5'
-  switch (type) {
-    case 'ALERT': return <AlertTriangle className={`${iconClass} text-red`} />
-    case 'INSPECTION': return <ClipboardCheck className={`${iconClass} text-amber`} />
-    case 'CAPA': return <ClipboardCheck className={`${iconClass} text-blue-400`} />
-    case 'AI_INSIGHT': return <Brain className={`${iconClass} text-amber`} />
-    case 'OBSERVATION': return <ShieldAlert className={`${iconClass} text-amber`} />
-    case 'REPORT': return <Activity className={`${iconClass} text-green`} />
-    default: return <Activity className={`${iconClass} text-text-muted`} />
-  }
 }

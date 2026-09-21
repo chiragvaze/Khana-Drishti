@@ -49,18 +49,25 @@ export default function TopBar() {
     <header className="h-[56px] bg-mine-black border-b border-border flex items-center justify-between px-5 flex-shrink-0">
       {/* Left: Title + Breadcrumb */}
       <div className="flex flex-col justify-center">
-        <h1 className="text-[18px] font-heading font-bold text-text-primary tracking-wide leading-tight">
+        <h1 className="text-[18px] font-heading font-bold text-text-primary tracking-wide leading-tight flex items-center gap-2">
           {currentTitle}
+          <span className="hidden sm:inline-block text-[11px] font-normal text-text-muted px-2 py-0.5 border border-border rounded-full bg-mine-black-light">
+            Smart Mine Governance
+          </span>
         </h1>
-        <div className="flex items-center gap-1 text-[11px] text-text-muted">
-          {breadcrumbs.map((crumb, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <ChevronRight className="w-3 h-3" />}
-              <span className={i === breadcrumbs.length - 1 ? 'text-text-secondary' : ''}>
-                {crumb}
+        <div className="flex items-center gap-2 text-[11px] text-text-muted mt-0.5">
+          <span className="flex items-center gap-1">
+            {breadcrumbs.map((crumb, i) => (
+              <span key={i} className="flex items-center gap-1">
+                {i > 0 && <ChevronRight className="w-3 h-3" />}
+                <span className={i === breadcrumbs.length - 1 ? 'text-text-secondary' : ''}>
+                  {crumb}
+                </span>
               </span>
-            </span>
-          ))}
+            ))}
+          </span>
+          <span className="text-border">•</span>
+          <span className="font-mono">{new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
         </div>
       </div>
 
