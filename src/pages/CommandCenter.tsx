@@ -10,6 +10,7 @@ import {
   Clock,
   ArrowRight,
   Flame,
+  FileDown,
 } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -17,6 +18,10 @@ import {
 } from 'recharts'
 import { KPICard } from '../components/shared/KPICard'
 import { StatusBadge } from '../components/shared/StatusBadge'
+import { PageHeader } from '../components/ui/PageHeader'
+import { Button } from '../components/ui/Button'
+import { Card, CardContent } from '../components/ui/Card'
+import { useToast } from '../components/ui/ToastProvider'
 import { mines } from '../data/mines'
 import { riskAlerts, recentActivity } from '../data/risk-alerts'
 import { capas } from '../data/capas'
@@ -57,6 +62,7 @@ const inspectionFrequency = [
 
 export default function CommandCenter() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [selectedAlertTab, setSelectedAlertTab] = useState<'active' | 'acknowledged'>('active')
 
   const activeAlerts = riskAlerts.filter((a) => a.status === 'ACTIVE')
@@ -67,41 +73,71 @@ export default function CommandCenter() {
   const highRiskObs = observations.filter((o) => o.riskLevel === 'HIGH')
   const avgCompliance = Math.round(mines.reduce((sum, m) => sum + m.complianceScore, 0) / mines.length)
 
+  const handleExport = () => {
+    toast({
+      title: 'Export Started',
+      description: 'The dashboard report is being generated.',
+      type: 'info'
+    })
+    setTimeout(() => {
+      toast({
+        title: 'Export Complete',
+        description: 'Dashboard report downloaded successfully.',
+        type: 'success'
+      })
+    }, 2000)
+  }
+
   return (
     <div className="space-y-5">
+      <PageHeader 
+        title="Command Center" 
+        description="Real-time overview of mine safety and compliance across all operations."
+      >
+        <Button onClick={handleExport} variant="outline" size="sm">
+          <FileDown className="w-4 h-4 mr-2" />
+          Export Report
+        </Button>
+      </PageHeader>
+
       {/* Critical Alert Banner */}
-      <div className="bg-red-dim border border-red/30 rounded p-4 flex items-start gap-3">
-        <div className="p-2 bg-red/20 rounded">
-          <Flame className="w-5 h-5 text-red" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-heading text-[15px] font-bold text-red-light tracking-wide">
-              CRITICAL ALERT — IMMEDIATE ACTION REQUIRED
-            </h3>
-            <StatusBadge status="HIGH" />
+      <Card className="bg-red-dim border-red/30">
+        <CardContent className="p-4 flex items-start gap-3">
+          <div className="p-2 bg-red/20 rounded">
+            <Flame className="w-5 h-5 text-red" />
           </div>
-          <p className="text-[13px] text-text-primary leading-relaxed">
-            Unsafe ventilation condition detected at <strong>WCL-04 (Wani Opencast Extension)</strong>, Panel 3B.
-            AI analysis predicts methane levels will exceed 1.25% statutory threshold within 18 hours.
-            CAPA assigned to Sharma Mining Services — SLA: {daysUntil('2026-09-22')} days remaining.
-          </p>
-          <div className="flex gap-2 mt-3">
-            <button
-              onClick={() => navigate('/mines/mine-wcl-04')}
-              className="px-3 py-1.5 bg-red text-white text-[12px] font-medium rounded hover:bg-red-light transition-colors flex items-center gap-1"
-            >
-              View Mine Detail <ArrowRight className="w-3 h-3" />
-            </button>
-            <button
-              onClick={() => navigate('/capa')}
-              className="px-3 py-1.5 bg-surface-raised border border-border text-text-primary text-[12px] font-medium rounded hover:bg-slate transition-colors"
-            >
-              View CAPA
-            </button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-heading text-[15px] font-bold text-red-light tracking-wide">
+                CRITICAL ALERT — IMMEDIATE ACTION REQUIRED
+              </h3>
+              <StatusBadge status="HIGH" />
+            </div>
+            <p className="text-[13px] text-text-primary leading-relaxed">
+              Unsafe ventilation condition detected at <strong>WCL-04 (Wani Opencast Extension)</strong>, Panel 3B.
+              AI analysis predicts methane levels will exceed 1.25% statutory threshold within 18 hours.
+              CAPA assigned to Sharma Mining Services — SLA: {daysUntil('2026-09-22')} days remaining.
+            </p>
+            <div className="flex gap-2 mt-3">
+              <Button
+                onClick={() => navigate('/mines/mine-wcl-04')}
+                variant="destructive"
+                size="sm"
+                className="gap-1"
+              >
+                View Mine Detail <ArrowRight className="w-3 h-3" />
+              </Button>
+              <Button
+                onClick={() => navigate('/capa')}
+                variant="outline"
+                size="sm"
+              >
+                View CAPA
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">

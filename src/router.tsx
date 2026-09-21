@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import DashboardLayout from './layouts/DashboardLayout'
 import CommandCenter from './pages/CommandCenter'
 import Mines from './pages/Mines'
@@ -18,10 +18,11 @@ export const router = createBrowserRouter([
     path: '/',
     element: <DashboardLayout />,
     children: [
-      { index: true, element: <CommandCenter /> },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { path: 'dashboard', element: <CommandCenter /> },
       { path: 'mines', element: <Mines /> },
       { path: 'mines/:id', element: <MineDetail /> },
-      { path: 'gis', element: <GISRiskMap /> },
+      { path: 'map', element: <GISRiskMap /> },
       { path: 'compliance', element: <ComplianceRisk /> },
       { path: 'capa', element: <CAPAPage /> },
       { path: 'contractors', element: <Contractors /> },

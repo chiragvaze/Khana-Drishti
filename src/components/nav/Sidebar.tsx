@@ -26,9 +26,9 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
-  { icon: LayoutDashboard, label: 'Command Center', path: '/' },
+  { icon: LayoutDashboard, label: 'Command Center', path: '/dashboard' },
   { icon: Factory, label: 'Mines', path: '/mines' },
-  { icon: Map, label: 'GIS Risk Map', path: '/gis' },
+  { icon: Map, label: 'GIS Risk Map', path: '/map' },
   { icon: ShieldAlert, label: 'Compliance & Risk', path: '/compliance' },
   { icon: ClipboardCheck, label: 'CAPA', path: '/capa' },
   { icon: HardHat, label: 'Contractors', path: '/contractors' },
@@ -71,8 +71,8 @@ export default function Sidebar() {
         <div className="space-y-0.5 px-2">
           {mainNavItems.map((item) => {
             const isActive =
-              item.path === '/'
-                ? location.pathname === '/'
+              item.path === '/dashboard'
+                ? location.pathname === '/dashboard'
                 : location.pathname.startsWith(item.path)
 
             return (
