@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   MapPin, Users, Pickaxe, ShieldAlert, ArrowLeft,
-  ClipboardCheck, AlertTriangle, Brain, Activity,
+  ClipboardCheck, Brain, Activity,
+  FileText, Image as ImageIcon,
+  CheckCircle, HardHat, FileSearch
 } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { StatusBadge } from '../components/shared/StatusBadge'
@@ -12,7 +14,7 @@ import { observations } from '../data/observations'
 import { capas } from '../data/capas'
 import { formatDate } from '../lib/utils'
 
-const tabs = ['Overview', 'Inspections', 'Observations', 'CAPAs']
+const tabs = ['Overview', 'Compliance', 'Inspections', 'Observations', 'CAPAs', 'Contractors', 'Evidence']
 
 export default function MineDetail() {
   const { id } = useParams()
@@ -40,79 +42,100 @@ export default function MineDetail() {
     { name: 'Non-Compliant', value: 100 - mine.complianceScore, color: '#C1292E' },
   ]
 
+  const openObsCount = mineObservations.filter(o => o.status !== 'RESOLVED').length
+  const overdueCapaCount = mineCAPAs.filter(c => c.status === 'OVERDUE').length
+
+  const isWcl04Demo = mine.id === 'mine-wcl-04'
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 pb-12">
       {/* Back + Header */}
-      <button onClick={() => navigate('/mines')} className="text-[12px] text-text-muted hover:text-text-secondary flex items-center gap-1">
+      <button onClick={() => navigate('/mines')} className="text-[12px] text-text-muted hover:text-amber transition-colors flex items-center gap-1 w-fit">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Mines
       </button>
 
-      <div className="bg-surface-raised border border-border rounded p-5">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="font-mono text-amber font-bold text-[16px]">{mine.code}</span>
-              <h2 className="font-heading text-[22px] font-bold text-text-primary tracking-wide">{mine.name}</h2>
+      <div className="bg-surface-raised border border-border rounded-md p-6">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="px-2 py-1 bg-mine-black border border-border rounded text-amber font-mono font-bold text-[13px]">{mine.code}</span>
+              <h2 className="font-heading text-2xl font-bold text-text-primary tracking-wide">{mine.name}</h2>
               <StatusBadge status={mine.status} size="md" />
               <StatusBadge status={mine.riskLevel} size="md" />
             </div>
-            <p className="text-[13px] text-text-secondary">{mine.subsidiary}</p>
+            <div className="flex flex-wrap items-center gap-4 text-[13px] text-text-secondary">
+              <span className="font-medium">{mine.subsidiary} ({mine.subsidiaryCode})</span>
+              <span className="text-border">•</span>
+              <div className="flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-text-muted" /> {mine.location}, {mine.state}
+              </div>
+            </div>
           </div>
-          <div className="flex gap-6 text-[12px]">
-            <div className="flex items-center gap-1.5 text-text-secondary">
-              <MapPin className="w-3.5 h-3.5" /> {mine.location}, {mine.state}
+          <div className="flex gap-6 text-[13px] bg-mine-black/50 p-4 rounded border border-border">
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] text-text-muted uppercase tracking-wider flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Workforce</span>
+              <span className="font-medium text-text-primary">{mine.totalWorkers}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-text-secondary">
-              <Users className="w-3.5 h-3.5" /> {mine.totalWorkers} workers
+            <div className="w-px bg-border" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] text-text-muted uppercase tracking-wider flex items-center gap-1.5"><Pickaxe className="w-3.5 h-3.5" /> Annual Prod.</span>
+              <span className="font-medium text-text-primary">{mine.annualProductionMT} MT</span>
             </div>
-            <div className="flex items-center gap-1.5 text-text-secondary">
-              <Pickaxe className="w-3.5 h-3.5" /> {mine.annualProductionMT} MT/year
+            <div className="w-px bg-border" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] text-text-muted uppercase tracking-wider">Type</span>
+              <span className="font-medium text-text-primary">{mine.type.replace('_', ' ')}</span>
             </div>
           </div>
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-5 pt-5 border-t border-border">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
           <div>
-            <span className="text-[10px] text-text-muted uppercase tracking-wider">Type</span>
-            <p className="text-[13px] font-medium text-text-primary mt-0.5">{mine.type.replace('_', ' ')}</p>
-          </div>
-          <div>
-            <span className="text-[10px] text-text-muted uppercase tracking-wider">Area</span>
-            <p className="text-[13px] font-medium text-text-primary mt-0.5">{mine.area}</p>
-          </div>
-          <div>
-            <span className="text-[10px] text-text-muted uppercase tracking-wider">Compliance</span>
-            <p className={`text-[13px] font-mono font-bold mt-0.5 ${mine.complianceScore >= 80 ? 'text-green' : mine.complianceScore >= 60 ? 'text-amber' : 'text-red'}`}>
+            <span className="text-[11px] text-text-muted uppercase tracking-wider">Compliance Score</span>
+            <p className={`text-xl font-mono font-bold mt-1 ${mine.complianceScore >= 80 ? 'text-green' : mine.complianceScore >= 60 ? 'text-amber' : 'text-red'}`}>
               {mine.complianceScore}%
             </p>
           </div>
           <div>
-            <span className="text-[10px] text-text-muted uppercase tracking-wider">Last Inspection</span>
-            <p className="text-[13px] font-mono text-text-primary mt-0.5">{formatDate(mine.lastInspectionDate)}</p>
+            <span className="text-[11px] text-text-muted uppercase tracking-wider">Open Observations</span>
+            <p className="text-xl font-mono font-bold text-text-primary mt-1">{openObsCount}</p>
           </div>
           <div>
-            <span className="text-[10px] text-text-muted uppercase tracking-wider">District</span>
-            <p className="text-[13px] text-text-primary mt-0.5">{mine.district}</p>
+            <span className="text-[11px] text-text-muted uppercase tracking-wider">Overdue CAPA</span>
+            <p className={`text-xl font-mono font-bold mt-1 ${overdueCapaCount > 0 ? 'text-red' : 'text-text-primary'}`}>
+              {overdueCapaCount}
+            </p>
+          </div>
+          <div>
+            <span className="text-[11px] text-text-muted uppercase tracking-wider">Last Inspection</span>
+            <p className="text-lg font-mono text-text-primary mt-1.5">{formatDate(mine.lastInspectionDate)}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-2 border-b border-border overflow-x-auto pb-px">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-[12px] font-medium transition-colors relative ${
+            className={`px-4 py-2.5 text-[13px] font-medium transition-colors relative whitespace-nowrap ${
               activeTab === tab
                 ? 'text-amber'
-                : 'text-text-muted hover:text-text-secondary'
+                : 'text-text-muted hover:text-text-secondary hover:bg-surface-raised'
             }`}
           >
             {tab}
             {tab === 'Observations' && mineObservations.length > 0 && (
-              <span className="ml-1 text-[10px] font-mono">({mineObservations.length})</span>
+              <span className="ml-1.5 text-[10px] font-mono py-0.5 px-1.5 rounded-full bg-mine-black border border-border">
+                {mineObservations.length}
+              </span>
+            )}
+            {tab === 'CAPAs' && mineCAPAs.length > 0 && (
+              <span className="ml-1.5 text-[10px] font-mono py-0.5 px-1.5 rounded-full bg-mine-black border border-border">
+                {mineCAPAs.length}
+              </span>
             )}
             {activeTab === tab && (
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-amber" />
@@ -122,163 +145,301 @@ export default function MineDetail() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'Overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Compliance Gauge */}
-          <div className="bg-surface-raised border border-border rounded p-4">
-            <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-3">COMPLIANCE SCORE</h3>
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie data={complianceData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" startAngle={90} endAngle={-270}>
-                  {complianceData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: '#1C2530', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <p className="text-center font-mono text-2xl font-bold text-text-primary -mt-4">{mine.complianceScore}%</p>
-            <p className="text-[10px] text-text-muted text-center mt-1">Sample data — Demo</p>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="bg-surface-raised border border-border rounded p-4 space-y-4">
-            <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider">SUMMARY</h3>
-            <StatRow icon={<ClipboardCheck className="w-4 h-4 text-amber" />} label="Total Inspections" value={String(mineInspections.length)} />
-            <StatRow icon={<AlertTriangle className="w-4 h-4 text-red" />} label="High-Risk Observations" value={String(mineObservations.filter(o => o.riskLevel === 'HIGH').length)} />
-            <StatRow icon={<ShieldAlert className="w-4 h-4 text-amber" />} label="Open CAPAs" value={String(mineCAPAs.filter(c => c.status !== 'CLOSED').length)} />
-            <StatRow icon={<Brain className="w-4 h-4 text-green" />} label="AI Verified Issues" value={String(mineObservations.filter(o => o.aiVerified).length)} />
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-surface-raised border border-border rounded p-4">
-            <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-3">RECENT ACTIVITY</h3>
-            <div className="space-y-3">
-              {mineInspections.slice(0, 3).map((insp) => (
-                <div key={insp.id} className="flex items-start gap-2 p-2 rounded hover:bg-mine-black/50 transition-colors">
-                  <Activity className="w-3.5 h-3.5 text-amber mt-0.5" />
-                  <div>
-                    <p className="text-[12px] text-text-primary">{insp.type.replace('_', ' ')} Inspection</p>
-                    <p className="text-[11px] text-text-muted">{formatDate(insp.date)} • {insp.inspector}</p>
+      <div className="min-h-[400px]">
+        {activeTab === 'Overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Left Column: Stats & Drivers */}
+            <div className="space-y-6">
+              <div className="bg-surface-raised border border-border rounded-md p-5">
+                <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-4 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  COMPLIANCE HEALTH
+                </h3>
+                <div className="flex flex-col items-center">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={complianceData} cx="50%" cy="50%" innerRadius={60} outerRadius={75} dataKey="value" startAngle={90} endAngle={-270} stroke="none">
+                        {complianceData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ background: '#111822', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute mt-16 text-center">
+                    <p className="font-mono text-3xl font-bold text-text-primary">{mine.complianceScore}%</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+              </div>
 
-      {activeTab === 'Inspections' && (
-        <div className="bg-surface-raised border border-border rounded overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-border bg-mine-black/50">
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">ID</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Inspector</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Observations</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Risk</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {mineInspections.map((insp) => (
-                <tr key={insp.id} className="hover:bg-mine-black/50 transition-colors">
-                  <td className="px-4 py-3 text-[12px] font-mono text-amber">{insp.id.slice(-8)}</td>
-                  <td className="px-4 py-3 text-[12px] font-mono text-text-primary">{formatDate(insp.date)}</td>
-                  <td className="px-4 py-3 text-[12px] text-text-secondary">{insp.inspector}</td>
-                  <td className="px-4 py-3 text-[12px] text-text-secondary">{insp.type.replace('_', ' ')}</td>
-                  <td className="px-4 py-3"><StatusBadge status={insp.status} /></td>
-                  <td className="px-4 py-3 text-[12px] font-mono text-text-primary">
-                    {insp.observationsCount}
-                    {insp.highRiskCount > 0 && <span className="text-red ml-1">({insp.highRiskCount} high)</span>}
-                  </td>
-                  <td className="px-4 py-3"><StatusBadge status={insp.riskLevel} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {activeTab === 'Observations' && (
-        <div className="space-y-3">
-          {mineObservations.map((obs) => (
-            <div key={obs.id} className="bg-surface-raised border border-border rounded p-4 hover:border-border-light transition-colors">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <StatusBadge status={obs.riskLevel} />
-                    <StatusBadge status={obs.status} />
-                    <span className="text-[10px] text-text-muted font-mono">{obs.type}</span>
-                  </div>
-                  <h4 className="text-[13px] font-medium text-text-primary mt-1">{obs.title}</h4>
-                  <p className="text-[12px] text-text-secondary mt-1 leading-relaxed">{obs.description}</p>
-                  <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted">
-                    <span>{obs.regulationRef}</span>
-                    <span>•</span>
-                    <span>{obs.regulationClause}</span>
-                  </div>
-                </div>
-                {obs.aiVerified && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-green-dim rounded text-[10px] text-green-light">
-                    <Brain className="w-3 h-3" /> AI {obs.aiConfidence}%
-                  </div>
-                )}
+              <div className="bg-surface-raised border border-border rounded-md p-5">
+                <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-4 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red" />
+                  KEY RISK DRIVERS
+                </h3>
+                <ul className="space-y-3">
+                  {isWcl04Demo ? (
+                    <>
+                      <li className="flex gap-3 items-start">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red mt-1.5 shrink-0" />
+                        <p className="text-[13px] text-text-primary leading-relaxed">
+                          Overdue ventilation CAPA in underground Panel 3B indicating prolonged non-compliance.
+                        </p>
+                      </li>
+                      <li className="flex gap-3 items-start">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber mt-1.5 shrink-0" />
+                        <p className="text-[13px] text-text-primary leading-relaxed">
+                          Missing daily environmental telemetry evidence for 3 continuous shifts.
+                        </p>
+                      </li>
+                      <li className="flex gap-3 items-start">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber mt-1.5 shrink-0" />
+                        <p className="text-[13px] text-text-primary leading-relaxed">
+                          Contractor safety observation open for &gt; 15 days.
+                        </p>
+                      </li>
+                    </>
+                  ) : (
+                    <li className="text-[13px] text-text-muted italic">No critical risk drivers identified.</li>
+                  )}
+                </ul>
               </div>
             </div>
-          ))}
-        </div>
-      )}
 
-      {activeTab === 'CAPAs' && (
-        <div className="space-y-3">
-          {mineCAPAs.length === 0 ? (
-            <div className="text-center py-12 text-text-muted text-[13px]">No CAPAs for this mine</div>
-          ) : (
-            mineCAPAs.map((capa) => (
-              <div key={capa.id} className="bg-surface-raised border border-border rounded p-4">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <StatusBadge status={capa.priority} />
-                      <StatusBadge status={capa.status} />
+            {/* Middle/Right Column: Risk Explanation (WCL-04 Demo) or General Activity */}
+            <div className="lg:col-span-2 space-y-6">
+              {isWcl04Demo ? (
+                <div className="bg-surface-raised border border-border rounded-md p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-heading text-[14px] font-semibold text-text-primary tracking-wider flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-amber" />
+                      AI RISK CLASSIFICATION CHAIN
+                    </h3>
+                    <StatusBadge status="HIGH" />
+                  </div>
+                  
+                  <div className="bg-mine-black border border-border rounded-md p-5 mb-6">
+                    <h4 className="text-[15px] font-semibold text-red-light mb-2">Unsafe ventilation condition detected</h4>
+                    <p className="text-[13px] text-text-secondary leading-relaxed">
+                      AI systems detected a critical safety pattern combining low air velocity readings from telemetry and visual evidence of damaged ventilation ducting in Panel 3B.
+                    </p>
+                  </div>
+
+                  <div className="relative">
+                    {/* Vertical connecting line */}
+                    <div className="absolute left-6 top-6 bottom-6 w-px bg-border" />
+
+                    <div className="space-y-6">
+                      {/* Step 1: Evidence */}
+                      <div className="relative flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-mine-black border border-border flex items-center justify-center shrink-0 z-10">
+                          <ImageIcon className="w-5 h-5 text-text-muted" />
+                        </div>
+                        <div className="flex-1 bg-mine-black/50 border border-border rounded p-4">
+                          <div className="text-[10px] text-text-muted font-mono mb-1">STEP 1 : EVIDENCE UPLOADED</div>
+                          <h5 className="text-[13px] font-medium text-text-primary mb-1">Damaged Ventilation Ducting (Photo + Sensor)</h5>
+                          <p className="text-[12px] text-text-secondary">Inspector uploaded field photo showing 1.5m tear in flexible ducting at Station 4+200. Correlated with telemetry reading of 0.3 m/s air velocity.</p>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Observation */}
+                      <div className="relative flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-mine-black border border-amber/30 flex items-center justify-center shrink-0 z-10">
+                          <FileSearch className="w-5 h-5 text-amber" />
+                        </div>
+                        <div className="flex-1 bg-amber/5 border border-amber/20 rounded p-4">
+                          <div className="text-[10px] text-amber-dim font-mono mb-1">STEP 2 : AI OBSERVATION CREATED</div>
+                          <h5 className="text-[13px] font-medium text-amber-light mb-1">Ventilation effectiveness compromised</h5>
+                          <p className="text-[12px] text-text-secondary">Vision AI confirmed duct tear. Data AI correlated low velocity with risk of methane buildup at the working face.</p>
+                        </div>
+                      </div>
+
+                      {/* Step 3: Obligation */}
+                      <div className="relative flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-mine-black border border-border flex items-center justify-center shrink-0 z-10">
+                          <FileText className="w-5 h-5 text-text-muted" />
+                        </div>
+                        <div className="flex-1 bg-mine-black/50 border border-border rounded p-4">
+                          <div className="text-[10px] text-text-muted font-mono mb-1">STEP 3 : REGULATORY MAPPING</div>
+                          <h5 className="text-[13px] font-medium text-text-primary mb-1">Coal Mines Regulations 2017, Reg. 130</h5>
+                          <p className="text-[12px] text-text-secondary">System mapped observation to statutory requirement: Minimum 1.0 m/s air velocity must be maintained in the return airway.</p>
+                        </div>
+                      </div>
+
+                      {/* Step 4: Classification */}
+                      <div className="relative flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-red/10 border border-red/30 flex items-center justify-center shrink-0 z-10">
+                          <ShieldAlert className="w-5 h-5 text-red" />
+                        </div>
+                        <div className="flex-1 bg-red/5 border border-red/20 rounded p-4">
+                          <div className="text-[10px] text-red-dim font-mono mb-1">STEP 4 : RISK CLASSIFIED</div>
+                          <h5 className="text-[13px] font-medium text-red-light mb-1">HIGH RISK ASSIGNED</h5>
+                          <p className="text-[12px] text-text-secondary">Due to direct violation of CMR 2017 Reg. 130 and presence of methane hazard, the issue was automatically escalated to HIGH risk and DGMS notified.</p>
+                        </div>
+                      </div>
                     </div>
-                    <h4 className="text-[13px] font-medium text-text-primary mt-1">{capa.title}</h4>
-                    <p className="text-[12px] text-text-secondary mt-1">{capa.description}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-3">
-                  <div className="flex-1 h-1.5 bg-mine-black rounded overflow-hidden">
-                    <div
-                      className={`h-full rounded ${capa.status === 'OVERDUE' ? 'bg-red' : 'bg-amber'}`}
-                      style={{ width: `${capa.progressPercent}%` }}
-                    />
+              ) : (
+                <div className="bg-surface-raised border border-border rounded-md p-5">
+                  <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-wider mb-4">RECENT INSPECTIONS</h3>
+                  <div className="space-y-3">
+                    {mineInspections.slice(0, 5).map((insp) => (
+                      <div key={insp.id} className="flex items-start justify-between gap-4 p-3 bg-mine-black rounded border border-border">
+                        <div className="flex gap-3">
+                          <ClipboardCheck className="w-4 h-4 text-text-muted mt-0.5" />
+                          <div>
+                            <p className="text-[13px] text-text-primary font-medium">{insp.type.replace('_', ' ')} Inspection</p>
+                            <p className="text-[11px] text-text-secondary mt-1">{insp.inspector} • {formatDate(insp.date)}</p>
+                          </div>
+                        </div>
+                        <StatusBadge status={insp.riskLevel} />
+                      </div>
+                    ))}
+                    {mineInspections.length === 0 && (
+                      <p className="text-[13px] text-text-muted py-4 text-center">No recent inspections.</p>
+                    )}
                   </div>
-                  <span className="text-[11px] font-mono text-text-secondary">{capa.progressPercent}%</span>
                 </div>
-                <div className="flex items-center gap-4 mt-2 text-[11px] text-text-muted">
-                  <span>Contractor: {capa.assignedContractor}</span>
-                  <span>Due: {formatDate(capa.dueDate)}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Other Tabs Content */}
+        {activeTab === 'Compliance' && (
+          <div className="bg-surface-raised border border-border rounded-md p-10 flex flex-col items-center justify-center text-center">
+            <CheckCircle className="w-12 h-12 text-text-muted mb-4 opacity-50" />
+            <h3 className="text-[15px] font-medium text-text-primary mb-2">Compliance History Module</h3>
+            <p className="text-[13px] text-text-secondary max-w-md">Detailed statutory compliance mapping and historical scoring trends will be available here.</p>
+          </div>
+        )}
+
+        {activeTab === 'Inspections' && (
+          <div className="bg-surface-raised border border-border rounded-md overflow-hidden">
+            <table className="w-full text-left whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-border bg-mine-black/80">
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">ID</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Date</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Inspector</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Type</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Observations</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Risk</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {mineInspections.map((insp) => (
+                  <tr key={insp.id} className="hover:bg-mine-black/50 transition-colors">
+                    <td className="px-4 py-3 text-[12px] font-mono text-amber">{insp.id.slice(-8)}</td>
+                    <td className="px-4 py-3 text-[12px] font-mono text-text-primary">{formatDate(insp.date)}</td>
+                    <td className="px-4 py-3 text-[12px] text-text-secondary">{insp.inspector}</td>
+                    <td className="px-4 py-3 text-[12px] text-text-secondary">{insp.type.replace('_', ' ')}</td>
+                    <td className="px-4 py-3"><StatusBadge status={insp.status} /></td>
+                    <td className="px-4 py-3 text-[12px] font-mono text-text-primary">
+                      {insp.observationsCount}
+                      {insp.highRiskCount > 0 && <span className="text-red ml-1">({insp.highRiskCount} high)</span>}
+                    </td>
+                    <td className="px-4 py-3"><StatusBadge status={insp.riskLevel} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'Observations' && (
+          <div className="space-y-4">
+            {mineObservations.map((obs) => (
+              <div key={obs.id} className="bg-surface-raised border border-border rounded-md p-5 hover:border-amber/30 transition-colors">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={obs.riskLevel} />
+                      <StatusBadge status={obs.status} />
+                      <span className="text-[10px] text-text-muted font-mono bg-mine-black px-2 py-0.5 rounded border border-border">{obs.type}</span>
+                    </div>
+                    <h4 className="text-[14px] font-semibold text-text-primary">{obs.title}</h4>
+                    <p className="text-[13px] text-text-secondary leading-relaxed max-w-4xl">{obs.description}</p>
+                    <div className="flex items-center gap-3 text-[11px] text-text-muted font-mono bg-mine-black/50 w-fit px-3 py-1.5 rounded border border-border">
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{obs.regulationRef}</span>
+                      <span>—</span>
+                      <span className="text-amber-dim">{obs.regulationClause}</span>
+                    </div>
+                  </div>
+                  {obs.aiVerified && (
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green/10 border border-green/20 rounded text-[11px] text-green-light font-medium">
+                        <Brain className="w-3.5 h-3.5" /> AI Verified ({obs.aiConfidence}%)
+                      </div>
+                      <span className="text-[10px] text-text-muted font-mono">{obs.dateIdentified}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
+            ))}
+          </div>
+        )}
 
-function StatRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-[12px] text-text-secondary">{label}</span>
+        {activeTab === 'CAPAs' && (
+          <div className="space-y-4">
+            {mineCAPAs.length === 0 ? (
+              <div className="text-center py-12 text-text-muted text-[13px]">No CAPAs for this mine</div>
+            ) : (
+              mineCAPAs.map((capa) => (
+                <div key={capa.id} className="bg-surface-raised border border-border rounded-md p-5">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={capa.priority} />
+                        <StatusBadge status={capa.status} />
+                      </div>
+                      <h4 className="text-[14px] font-semibold text-text-primary">{capa.title}</h4>
+                      <p className="text-[13px] text-text-secondary max-w-4xl leading-relaxed">{capa.description}</p>
+                    </div>
+                  </div>
+                  <div className="bg-mine-black border border-border rounded p-4 space-y-3">
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-text-muted">Progress ({capa.progressPercent}%)</span>
+                      <span className="text-text-muted">Due: <span className="font-mono text-text-primary">{formatDate(capa.dueDate)}</span></span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-raised rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ${capa.status === 'OVERDUE' ? 'bg-red' : capa.progressPercent === 100 ? 'bg-green' : 'bg-amber'}`}
+                        style={{ width: `${capa.progressPercent}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 text-[12px] text-text-secondary pt-2">
+                      <HardHat className="w-4 h-4 text-text-muted" />
+                      Assigned to: <span className="text-amber-dim font-medium">{capa.assignedContractor}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'Contractors' && (
+          <div className="bg-surface-raised border border-border rounded-md p-10 flex flex-col items-center justify-center text-center">
+            <HardHat className="w-12 h-12 text-text-muted mb-4 opacity-50" />
+            <h3 className="text-[15px] font-medium text-text-primary mb-2">Contractor Safety Profiles</h3>
+            <p className="text-[13px] text-text-secondary max-w-md">Detailed performance metrics, safety incidents, and clearance statuses for all active contractors at this mine.</p>
+          </div>
+        )}
+
+        {activeTab === 'Evidence' && (
+          <div className="bg-surface-raised border border-border rounded-md p-10 flex flex-col items-center justify-center text-center">
+            <ImageIcon className="w-12 h-12 text-text-muted mb-4 opacity-50" />
+            <h3 className="text-[15px] font-medium text-text-primary mb-2">Evidence Vault</h3>
+            <p className="text-[13px] text-text-secondary max-w-md">Central repository for inspection photos, videos, drone footage, and IoT telemetry data logs.</p>
+          </div>
+        )}
+
       </div>
-      <span className="font-mono text-[14px] font-bold text-text-primary">{value}</span>
     </div>
   )
 }
