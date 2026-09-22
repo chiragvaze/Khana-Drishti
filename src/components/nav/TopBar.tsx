@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Bell, ChevronDown, User, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Bell, ChevronDown, User, ChevronRight, Search, AlertTriangle, ShieldCheck, ClipboardCheck, Camera, Database } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 const routeTitles: Record<string, string> = {
   '/': 'Command Center',
   '/mines': 'Mines',
-  '/gis': 'GIS Risk Map',
+  '/map': 'GIS Risk Map',
   '/compliance': 'Compliance & Risk',
   '/capa': 'CAPA Management',
   '/contractors': 'Contractors',
@@ -29,11 +29,35 @@ const subsidiaries = [
   'BCCL — Bharat Coking Coal',
 ]
 
+// Mock search results mimicking backend response
+const getMockSearchResults = (query: string) => {
+  if (!query) return []
+  const q = query.toLowerCase()
+  if (q.includes('wcl-04') || q.includes('wcl')) {
+    return [
+      { type: 'Mine', title: 'WCL-04 — Wani Opencast Extension', icon: <Database className="w-3 h-3 text-blue-400" />, link: '/mines/mine-wcl-04' },
+      { type: 'Risk', title: 'CRITICAL: Ventilation failure imminent', icon: <AlertTriangle className="w-3 h-3 text-red" />, link: '/ai-insights' },
+      { type: 'CAPA', title: 'Ventilation restoration CAPA (Overdue)', icon: <ShieldCheck className="w-3 h-3 text-amber" />, link: '/capa' },
+      { type: 'Inspections', title: 'Routine inspection — 4 observations', icon: <ClipboardCheck className="w-3 h-3 text-text-secondary" />, link: '/inspections' },
+      { type: 'Evidence', title: 'KD-E102 (Photo)', icon: <Camera className="w-3 h-3 text-text-secondary" />, link: '/evidence' },
+    ]
+  }
+  return [
+    { type: 'General', title: `Search results for "${query}"`, icon: <Search className="w-3 h-3 text-text-muted" />, link: '#' }
+  ]
+}
+
 export default function TopBar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  
   const [selectedSubsidiary, setSelectedSubsidiary] = useState('All Subsidiaries')
   const [showSubsidiaryDropdown, setShowSubsidiaryDropdown] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const pathParts = location.pathname.split('/').filter(Boolean)
   const currentTitle =
@@ -45,8 +69,30 @@ export default function TopBar() {
     ...(currentTitle !== 'Command Center' ? [currentTitle] : []),
   ]
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K or Cmd+K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+      // Escape to close all dropdowns
+      if (e.key === 'Escape') {
+        setShowSearch(false)
+        setShowNotifications(false)
+        setShowSubsidiaryDropdown(false)
+        searchInputRef.current?.blur()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  const searchResults = getMockSearchResults(searchQuery)
+
   return (
-    <header className="h-[56px] bg-mine-black border-b border-border flex items-center justify-between px-5 flex-shrink-0">
+    <header className="h-[56px] bg-mine-black border-b border-border flex items-center justify-between px-5 flex-shrink-0 z-40">
       {/* Left: Title + Breadcrumb */}
       <div className="flex flex-col justify-center">
         <h1 className="text-[18px] font-heading font-bold text-text-primary tracking-wide leading-tight flex items-center gap-2">
@@ -72,23 +118,87 @@ export default function TopBar() {
       </div>
 
       {/* Right: Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        
+        {/* Global Search */}
+        <div className="relative hidden md:block">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search mines, CAPA, evidence..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setShowSearch(true)
+                setShowNotifications(false)
+                setShowSubsidiaryDropdown(false)
+              }}
+              onFocus={() => setShowSearch(true)}
+              className="w-[280px] pl-8 pr-10 py-1.5 bg-surface-raised border border-border rounded text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-amber/50 transition-colors"
+            />
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex gap-1 pointer-events-none">
+              <kbd className="text-[9px] font-mono bg-mine-black px-1 rounded text-text-muted border border-border">Ctrl</kbd>
+              <kbd className="text-[9px] font-mono bg-mine-black px-1 rounded text-text-muted border border-border">K</kbd>
+            </div>
+          </div>
+          
+          {showSearch && searchQuery && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowSearch(false)} />
+              <div className="absolute right-0 top-full mt-1 w-[360px] bg-surface-raised border border-border rounded-lg shadow-2xl z-50 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border bg-mine-black/50">
+                  <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Search Results</span>
+                </div>
+                <div className="max-h-[320px] overflow-y-auto">
+                  {searchResults.map((result, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        navigate(result.link)
+                        setShowSearch(false)
+                        setSearchQuery('')
+                      }}
+                      className="w-full text-left px-3 py-2.5 border-b border-border/50 hover:bg-mine-black transition-colors flex items-center gap-3 group"
+                    >
+                      <div className="p-1.5 bg-mine-black border border-border rounded group-hover:border-amber/30 transition-colors">
+                        {result.icon}
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-text-primary">{result.title}</p>
+                        <p className="text-[10px] text-text-muted uppercase tracking-wider">{result.type}</p>
+                      </div>
+                    </button>
+                  ))}
+                  {searchResults.length === 0 && (
+                    <div className="px-4 py-8 text-center text-[12px] text-text-muted">
+                      No results found for "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Subsidiary Selector */}
         <div className="relative">
           <button
             onClick={() => {
               setShowSubsidiaryDropdown(!showSubsidiaryDropdown)
               setShowNotifications(false)
+              setShowSearch(false)
             }}
             className="flex items-center gap-2 px-3 py-1.5 bg-surface-raised border border-border rounded text-[12px] text-text-secondary hover:text-text-primary transition-colors"
           >
-            <span className="max-w-[160px] truncate">{selectedSubsidiary}</span>
+            <span className="max-w-[140px] truncate">{selectedSubsidiary}</span>
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
           {showSubsidiaryDropdown && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowSubsidiaryDropdown(false)} />
-              <div className="absolute right-0 top-full mt-1 w-[240px] bg-surface-raised border border-border rounded shadow-2xl z-50 py-1">
+              <div className="absolute right-0 top-full mt-1 w-[240px] bg-surface-raised border border-border rounded-lg shadow-2xl z-50 py-1">
                 {subsidiaries.map((sub) => (
                   <button
                     key={sub}
@@ -117,6 +227,7 @@ export default function TopBar() {
             onClick={() => {
               setShowNotifications(!showNotifications)
               setShowSubsidiaryDropdown(false)
+              setShowSearch(false)
             }}
             className="relative p-2 text-text-secondary hover:text-text-primary transition-colors"
           >
@@ -128,28 +239,35 @@ export default function TopBar() {
           {showNotifications && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-              <div className="absolute right-0 top-full mt-1 w-[320px] bg-surface-raised border border-border rounded shadow-2xl z-50">
-                <div className="px-3 py-2 border-b border-border">
-                  <span className="text-[12px] font-semibold text-text-primary">Notifications</span>
+              <div className="absolute right-0 top-full mt-1 w-[340px] bg-surface-raised border border-border rounded-lg shadow-2xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-border bg-mine-black/50 flex justify-between items-center">
+                  <span className="text-[12px] font-semibold text-text-primary tracking-wide">Notification Center</span>
+                  <span className="text-[10px] text-text-muted cursor-pointer hover:text-text-secondary">Mark all read</span>
                 </div>
-                <div className="max-h-[300px] overflow-y-auto">
+                <div className="max-h-[360px] overflow-y-auto">
                   <NotificationItem
-                    title="Critical: WCL-04 Ventilation Alert"
-                    description="Methane levels approaching threshold in Panel 3B"
+                    title="WCL-04 CAPA crossed SLA threshold"
+                    description="Ventilation restoration CAPA (CAPA-2026-0042) is overdue."
+                    time="10m ago"
+                    severity="HIGH"
+                    link="/capa"
+                    onClick={() => setShowNotifications(false)}
+                  />
+                  <NotificationItem
+                    title="New inspection evidence requires verification"
+                    description="KD-E103 (Video) uploaded by Inspector."
                     time="2h ago"
-                    severity="HIGH"
-                  />
-                  <NotificationItem
-                    title="CAPA Overdue: BCCL-06 FR Cables"
-                    description="FR cable installation 22 days past deadline"
-                    time="5h ago"
-                    severity="HIGH"
-                  />
-                  <NotificationItem
-                    title="Follow-up inspection scheduled"
-                    description="WCL-04 ventilation CAPA verification"
-                    time="1d ago"
                     severity="MEDIUM"
+                    link="/evidence"
+                    onClick={() => setShowNotifications(false)}
+                  />
+                  <NotificationItem
+                    title="Monthly compliance report generated"
+                    description="September 2026 report is ready for review."
+                    time="5h ago"
+                    severity="INFO"
+                    link="/reports"
+                    onClick={() => setShowNotifications(false)}
                   />
                 </div>
               </div>
@@ -158,7 +276,7 @@ export default function TopBar() {
         </div>
 
         {/* User */}
-        <div className="flex items-center gap-2 pl-3 border-l border-border">
+        <div className="flex items-center gap-2 pl-4 border-l border-border">
           <div className="w-8 h-8 rounded bg-slate flex items-center justify-center">
             <User className="w-4 h-4 text-text-secondary" />
           </div>
@@ -177,28 +295,44 @@ function NotificationItem({
   description,
   time,
   severity,
+  link,
+  onClick
 }: {
   title: string
   description: string
   time: string
-  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  severity: 'HIGH' | 'MEDIUM' | 'INFO'
+  link: string
+  onClick: () => void
 }) {
+  const navigate = useNavigate()
+  
   return (
-    <div className="px-3 py-2.5 border-b border-border hover:bg-mine-black transition-colors cursor-pointer">
-      <div className="flex items-start justify-between gap-2">
+    <div 
+      onClick={() => {
+        onClick()
+        navigate(link)
+      }}
+      className="px-4 py-3 border-b border-border/50 hover:bg-mine-black transition-colors cursor-pointer group"
+    >
+      <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2 mb-1">
             <div
               className={cn(
-                'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                severity === 'HIGH' ? 'bg-red' : severity === 'MEDIUM' ? 'bg-amber' : 'bg-green'
+                'px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase',
+                severity === 'HIGH' ? 'bg-red-dim text-red-light' : 
+                severity === 'MEDIUM' ? 'bg-amber-dim text-amber' : 
+                'bg-blue-950 text-blue-400'
               )}
-            />
-            <span className="text-[12px] font-medium text-text-primary truncate">{title}</span>
+            >
+              {severity}
+            </div>
+            <span className="text-[12px] font-medium text-text-primary group-hover:text-amber transition-colors">{title}</span>
           </div>
-          <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{description}</p>
+          <p className="text-[11px] text-text-muted line-clamp-2 leading-relaxed">{description}</p>
         </div>
-        <span className="text-[10px] text-text-muted flex-shrink-0">{time}</span>
+        <span className="text-[10px] font-mono text-text-muted flex-shrink-0 mt-1">{time}</span>
       </div>
     </div>
   )
