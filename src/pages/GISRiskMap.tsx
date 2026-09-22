@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import * as maplibregl from 'maplibre-gl'
-import { Search, RotateCcw, ShieldAlert, Activity, Navigation, X } from 'lucide-react'
+import { Search, RotateCcw, ShieldAlert, Activity } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { mines } from '../data/mines'
 import { cn } from '../lib/utils'
