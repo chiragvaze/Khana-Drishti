@@ -28,6 +28,12 @@ export default function EvidencePage() {
   const [aiStatusFilter, setAiStatusFilter] = useState<string>('ALL')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null)
+  const [imageError, setImageError] = useState<boolean>(false)
+
+  // Reset image error state when selected evidence changes
+  useMemo(() => {
+    setImageError(false)
+  }, [selectedEvidence])
 
   const filtered = useMemo(() => {
     return evidence.filter((e) => {
@@ -163,9 +169,27 @@ export default function EvidencePage() {
             <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto pr-2 custom-scrollbar">
               {selected.type === 'PHOTO' ? (
                 <div className="h-48 bg-mine-black rounded overflow-hidden relative">
-                  <img src="https://placehold.co/600x400/151515/F59E0B?text=EVIDENCE+PREVIEW" alt="Evidence" className="w-full h-full object-cover opacity-80" />
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded"></div>
-                  <div className="absolute top-2 right-2 bg-black/80 backdrop-blur text-white text-[9px] px-2 py-1 rounded font-mono">SIMULATED ASSET</div>
+                  {!imageError ? (
+                    <img 
+                      src={`/evidence/${selected.fileName}`} 
+                      alt="Evidence" 
+                      className="w-full h-full object-cover opacity-80"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-mine-black-light border border-border/50">
+                      <Image className="w-8 h-8 text-text-muted mb-2 opacity-50" />
+                      <span className="text-[12px] text-text-secondary font-medium">Evidence preview unavailable</span>
+                      <span className="text-[10px] text-text-muted mt-1 font-mono">{selected.fileName}</span>
+                    </div>
+                  )}
+                  
+                  {!imageError && (
+                    <>
+                      <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded"></div>
+                      <div className="absolute top-2 right-2 bg-black/80 backdrop-blur text-white text-[9px] px-2 py-1 rounded font-mono">SIMULATED ASSET</div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="h-32 bg-mine-black rounded flex items-center justify-center">
