@@ -67,9 +67,9 @@ export function ErrorState({
   className
 }: ErrorStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-12 text-center rounded-lg border border-red-500/20 bg-mine-black", className)}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 mb-4">
-        <AlertCircle className="h-6 w-6 text-red-500" />
+    <div className={cn("flex flex-col items-center justify-center p-12 text-center rounded-lg border border-red/20 bg-mine-black", className)}>
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-dim mb-4">
+        <AlertCircle className="h-6 w-6 text-red" />
       </div>
       <h3 className="text-lg font-heading font-semibold text-text-primary mb-1">{title}</h3>
       <p className="text-sm text-text-secondary max-w-sm mb-6">{message}</p>

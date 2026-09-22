@@ -2,13 +2,22 @@ import { User, Bell, Shield, Info } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../lib/utils'
 import { useLocation } from 'react-router-dom'
+import { useRole } from '../contexts/RoleContext'
 
 export default function SettingsPage() {
   const location = useLocation()
+  const { role } = useRole()
   const isHelp = location.pathname === '/help'
   const [notifyEmail, setNotifyEmail] = useState(true)
   const [notifyDashboard, setNotifyDashboard] = useState(true)
   const [notifySMS, setNotifySMS] = useState(false)
+
+  const profiles = {
+    MINE_OFFICIAL: { name: 'A.K. Sharma', title: 'Mine Manager, WCL-04', email: 'ak.sharma@wcl.coalindia.in', phone: '+91-712-2XXXXXX' },
+    CORPORATE_MANAGEMENT: { name: 'Shri V.K. Patel', title: 'Director (Technical), CIL', email: 'vk.patel@coalindia.in', phone: '+91-33-2248-XXXX' },
+    REGULATORY_AUTHORITY: { name: 'Dr. R. Singh', title: 'Director General, DGMS', email: 'dg@dgms.gov.in', phone: '+91-326-2XXXXXX' },
+  }
+  const profile = profiles[role]
 
   if (isHelp) {
     return (
@@ -65,19 +74,19 @@ export default function SettingsPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-[10px] text-text-muted uppercase tracking-wider">Name</label>
-            <p className="text-[13px] text-text-primary mt-0.5">Shri V.K. Patel</p>
+            <p className="text-[13px] text-text-primary mt-0.5">{profile.name}</p>
           </div>
           <div>
             <label className="text-[10px] text-text-muted uppercase tracking-wider">Role</label>
-            <p className="text-[13px] text-text-primary mt-0.5">Director (Technical), CIL</p>
+            <p className="text-[13px] text-text-primary mt-0.5">{profile.title}</p>
           </div>
           <div>
             <label className="text-[10px] text-text-muted uppercase tracking-wider">Email</label>
-            <p className="text-[13px] text-text-primary mt-0.5">vk.patel@coalindia.in</p>
+            <p className="text-[13px] text-text-primary mt-0.5">{profile.email}</p>
           </div>
           <div>
             <label className="text-[10px] text-text-muted uppercase tracking-wider">Phone</label>
-            <p className="text-[13px] text-text-primary mt-0.5">+91-33-2248-XXXX</p>
+            <p className="text-[13px] text-text-primary mt-0.5">{profile.phone}</p>
           </div>
         </div>
       </div>

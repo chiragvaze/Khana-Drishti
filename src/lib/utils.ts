@@ -31,7 +31,7 @@ export function daysUntil(date: string | Date): number {
 }
 
 export function percentageColor(value: number): string {
-  if (value >= 80) return 'text-green-500'
-  if (value >= 60) return 'text-amber-500'
-  return 'text-red-500'
+  if (value >= 80) return 'text-green'
+  if (value >= 60) return 'text-amber'
+  return 'text-red'
 }

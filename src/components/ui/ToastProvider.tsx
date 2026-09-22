@@ -57,17 +57,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={toast.id}
             className={cn(
               "pointer-events-auto w-full rounded-lg shadow-lg border p-4 flex items-start gap-3 transition-all animate-in slide-in-from-right-full",
-              toast.type === 'success' && "bg-surface-raised border-green-500/30",
-              toast.type === 'error' && "bg-surface-raised border-red-500/30",
+              toast.type === 'success' && "bg-surface-raised border-green/30",
+              toast.type === 'error' && "bg-surface-raised border-red/30",
               toast.type === 'warning' && "bg-surface-raised border-amber/30",
-              toast.type === 'info' && "bg-surface-raised border-blue-500/30",
+              toast.type === 'info' && "bg-surface-raised border-blue-400/30",
             )}
           >
             <div className="flex-shrink-0 mt-0.5">
-              {toast.type === 'success' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-              {toast.type === 'error' && <AlertCircle className="h-5 w-5 text-red-500" />}
+              {toast.type === 'success' && <CheckCircle2 className="h-5 w-5 text-green" />}
+              {toast.type === 'error' && <AlertCircle className="h-5 w-5 text-red" />}
               {toast.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber" />}
-              {toast.type === 'info' && <Info className="h-5 w-5 text-blue-500" />}
+              {toast.type === 'info' && <Info className="h-5 w-5 text-blue-400" />}
             </div>
             
             <div className="flex-1 w-0">
