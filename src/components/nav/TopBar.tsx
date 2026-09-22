@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, User, ChevronRight, Search, AlertTriangle, ShieldCheck, ClipboardCheck, Camera, Database } from 'lucide-react'
+import { Bell, ChevronDown, User, ChevronRight, Search, AlertTriangle, ShieldCheck, ClipboardCheck, Camera, Database, Check } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { useRole } from '../../contexts/RoleContext'
+import type { Role } from '../../contexts/RoleContext'
 
 const routeTitles: Record<string, string> = {
   '/': 'Command Center',
@@ -29,7 +31,6 @@ const subsidiaries = [
   'BCCL — Bharat Coking Coal',
 ]
 
-// Mock search results mimicking backend response
 const getMockSearchResults = (query: string) => {
   if (!query) return []
   const q = query.toLowerCase()
@@ -47,13 +48,21 @@ const getMockSearchResults = (query: string) => {
   ]
 }
 
+const roleProfiles: Record<Role, { name: string, title: string }> = {
+  MINE_OFFICIAL: { name: 'A.K. Sharma', title: 'Mine Manager, WCL-04' },
+  CORPORATE_MANAGEMENT: { name: 'Shri V.K. Patel', title: 'Director (Technical), CIL' },
+  REGULATORY_AUTHORITY: { name: 'Dr. R. Singh', title: 'Director General, DGMS' },
+}
+
 export default function TopBar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { role, setRole } = useRole()
   
   const [selectedSubsidiary, setSelectedSubsidiary] = useState('All Subsidiaries')
   const [showSubsidiaryDropdown, setShowSubsidiaryDropdown] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
@@ -69,19 +78,17 @@ export default function TopBar() {
     ...(currentTitle !== 'Command Center' ? [currentTitle] : []),
   ]
 
-  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+K or Cmd+K to focus search
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault()
         searchInputRef.current?.focus()
       }
-      // Escape to close all dropdowns
       if (e.key === 'Escape') {
         setShowSearch(false)
         setShowNotifications(false)
         setShowSubsidiaryDropdown(false)
+        setShowRoleDropdown(false)
         searchInputRef.current?.blur()
       }
     }
@@ -90,15 +97,15 @@ export default function TopBar() {
   }, [])
 
   const searchResults = getMockSearchResults(searchQuery)
+  const profile = roleProfiles[role]
 
   return (
     <header className="h-[56px] bg-mine-black border-b border-border flex items-center justify-between px-5 flex-shrink-0 z-40">
-      {/* Left: Title + Breadcrumb */}
       <div className="flex flex-col justify-center">
         <h1 className="text-[18px] font-heading font-bold text-text-primary tracking-wide leading-tight flex items-center gap-2">
           {currentTitle}
-          <span className="hidden sm:inline-block text-[11px] font-normal text-text-muted px-2 py-0.5 border border-border rounded-full bg-mine-black-light">
-            Smart Mine Governance
+          <span className="hidden sm:inline-block text-[11px] font-normal text-amber px-2 py-0.5 border border-amber/30 rounded-full bg-amber-dim">
+            {role.replace('_', ' ')}
           </span>
         </h1>
         <div className="flex items-center gap-2 text-[11px] text-text-muted mt-0.5">
@@ -117,7 +124,6 @@ export default function TopBar() {
         </div>
       </div>
 
-      {/* Right: Controls */}
       <div className="flex items-center gap-4">
         
         {/* Global Search */}
@@ -134,6 +140,7 @@ export default function TopBar() {
                 setShowSearch(true)
                 setShowNotifications(false)
                 setShowSubsidiaryDropdown(false)
+                setShowRoleDropdown(false)
               }}
               onFocus={() => setShowSearch(true)}
               className="w-[280px] pl-8 pr-10 py-1.5 bg-surface-raised border border-border rounded text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-amber/50 transition-colors"
@@ -183,43 +190,46 @@ export default function TopBar() {
         </div>
 
         {/* Subsidiary Selector */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setShowSubsidiaryDropdown(!showSubsidiaryDropdown)
-              setShowNotifications(false)
-              setShowSearch(false)
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-surface-raised border border-border rounded text-[12px] text-text-secondary hover:text-text-primary transition-colors"
-          >
-            <span className="max-w-[140px] truncate">{selectedSubsidiary}</span>
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
-          {showSubsidiaryDropdown && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowSubsidiaryDropdown(false)} />
-              <div className="absolute right-0 top-full mt-1 w-[240px] bg-surface-raised border border-border rounded-lg shadow-2xl z-50 py-1">
-                {subsidiaries.map((sub) => (
-                  <button
-                    key={sub}
-                    onClick={() => {
-                      setSelectedSubsidiary(sub)
-                      setShowSubsidiaryDropdown(false)
-                    }}
-                    className={cn(
-                      'w-full text-left px-3 py-2 text-[12px] transition-colors',
-                      selectedSubsidiary === sub
-                        ? 'text-amber bg-amber-dim'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-mine-black'
-                    )}
-                  >
-                    {sub}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+        {role !== 'MINE_OFFICIAL' && (
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowSubsidiaryDropdown(!showSubsidiaryDropdown)
+                setShowNotifications(false)
+                setShowSearch(false)
+                setShowRoleDropdown(false)
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-surface-raised border border-border rounded text-[12px] text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <span className="max-w-[140px] truncate">{selectedSubsidiary}</span>
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+            {showSubsidiaryDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSubsidiaryDropdown(false)} />
+                <div className="absolute right-0 top-full mt-1 w-[240px] bg-surface-raised border border-border rounded-lg shadow-2xl z-50 py-1">
+                  {subsidiaries.map((sub) => (
+                    <button
+                      key={sub}
+                      onClick={() => {
+                        setSelectedSubsidiary(sub)
+                        setShowSubsidiaryDropdown(false)
+                      }}
+                      className={cn(
+                        'w-full text-left px-3 py-2 text-[12px] transition-colors',
+                        selectedSubsidiary === sub
+                          ? 'text-amber bg-amber-dim'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-mine-black'
+                      )}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Notifications */}
         <div className="relative">
@@ -228,6 +238,7 @@ export default function TopBar() {
               setShowNotifications(!showNotifications)
               setShowSubsidiaryDropdown(false)
               setShowSearch(false)
+              setShowRoleDropdown(false)
             }}
             className="relative p-2 text-text-secondary hover:text-text-primary transition-colors"
           >
@@ -275,15 +286,58 @@ export default function TopBar() {
           )}
         </div>
 
-        {/* User */}
-        <div className="flex items-center gap-2 pl-4 border-l border-border">
-          <div className="w-8 h-8 rounded bg-slate flex items-center justify-center">
-            <User className="w-4 h-4 text-text-secondary" />
-          </div>
-          <div className="hidden md:flex flex-col leading-tight">
-            <span className="text-[12px] font-medium text-text-primary">Shri V.K. Patel</span>
-            <span className="text-[10px] text-text-muted">Director (Technical), CIL</span>
-          </div>
+        {/* User / Role Switcher */}
+        <div className="relative border-l border-border pl-4">
+          <button 
+            onClick={() => {
+              setShowRoleDropdown(!showRoleDropdown)
+              setShowNotifications(false)
+              setShowSubsidiaryDropdown(false)
+              setShowSearch(false)
+            }}
+            className="flex items-center gap-2 hover:bg-surface-raised p-1 rounded transition-colors"
+          >
+            <div className="w-8 h-8 rounded bg-slate flex items-center justify-center">
+              <User className="w-4 h-4 text-text-secondary" />
+            </div>
+            <div className="hidden md:flex flex-col leading-tight text-left">
+              <span className="text-[12px] font-medium text-text-primary">{profile.name}</span>
+              <span className="text-[10px] text-text-muted">{profile.title}</span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-text-muted ml-1" />
+          </button>
+          
+          {showRoleDropdown && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowRoleDropdown(false)} />
+              <div className="absolute right-0 top-full mt-1 w-[260px] bg-surface-raised border border-border rounded-lg shadow-2xl z-50 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border bg-mine-black/50">
+                  <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Demo Role Switcher</span>
+                </div>
+                <div className="py-1">
+                  {(Object.keys(roleProfiles) as Role[]).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => {
+                        setRole(r)
+                        setShowRoleDropdown(false)
+                        navigate('/')
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-mine-black transition-colors flex items-center justify-between group"
+                    >
+                      <div>
+                        <p className={cn("text-[12px] font-medium", role === r ? "text-amber" : "text-text-primary")}>
+                          {r.replace('_', ' ')}
+                        </p>
+                        <p className="text-[10px] text-text-muted mt-0.5">{roleProfiles[r].title}</p>
+                      </div>
+                      {role === r && <Check className="w-4 h-4 text-amber" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

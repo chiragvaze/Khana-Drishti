@@ -18,27 +18,30 @@ import {
   Pickaxe,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { useRole } from '../../contexts/RoleContext'
+import type { Role } from '../../contexts/RoleContext'
 
 interface NavItem {
   icon: React.ElementType
   label: string
   path: string
+  roles: Role[]
 }
 
 const mainNavItems: NavItem[] = [
-  { icon: LayoutDashboard, label: 'Command Center', path: '/dashboard' },
-  { icon: Factory, label: 'Mines', path: '/mines' },
-  { icon: Map, label: 'GIS Risk Map', path: '/map' },
-  { icon: ShieldAlert, label: 'Compliance & Risk', path: '/compliance' },
-  { icon: ClipboardCheck, label: 'CAPA', path: '/capa' },
-  { icon: HardHat, label: 'Contractors', path: '/contractors' },
-  { icon: Search, label: 'Inspections', path: '/inspections' },
-  { icon: Camera, label: 'Evidence', path: '/evidence' },
-  { icon: Brain, label: 'AI Insights', path: '/ai-insights' },
-  { icon: FileBarChart, label: 'Reports', path: '/reports' },
+  { icon: LayoutDashboard, label: 'Command Center', path: '/dashboard', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
+  { icon: Factory, label: 'Mines', path: '/mines', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
+  { icon: Map, label: 'GIS Risk Map', path: '/map', roles: ['CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
+  { icon: ShieldAlert, label: 'Compliance & Risk', path: '/compliance', roles: ['CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
+  { icon: ClipboardCheck, label: 'CAPA', path: '/capa', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT'] },
+  { icon: HardHat, label: 'Contractors', path: '/contractors', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT'] },
+  { icon: Search, label: 'Inspections', path: '/inspections', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
+  { icon: Camera, label: 'Evidence', path: '/evidence', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
+  { icon: Brain, label: 'AI Insights', path: '/ai-insights', roles: ['MINE_OFFICIAL', 'CORPORATE_MANAGEMENT'] },
+  { icon: FileBarChart, label: 'Reports', path: '/reports', roles: ['CORPORATE_MANAGEMENT', 'REGULATORY_AUTHORITY'] },
 ]
 
-const bottomNavItems: NavItem[] = [
+const bottomNavItems: Omit<NavItem, 'roles'>[] = [
   { icon: Settings, label: 'Settings', path: '/settings' },
   { icon: HelpCircle, label: 'Help', path: '/help' },
 ]
@@ -46,6 +49,9 @@ const bottomNavItems: NavItem[] = [
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
+  const { role } = useRole()
+
+  const allowedNavItems = mainNavItems.filter((item) => item.roles.includes(role))
 
   return (
     <aside
@@ -69,10 +75,10 @@ export default function Sidebar() {
       {/* Main nav */}
       <nav className="flex-1 py-2 overflow-y-auto overflow-x-hidden">
         <div className="space-y-0.5 px-2">
-          {mainNavItems.map((item) => {
+          {allowedNavItems.map((item) => {
             const isActive =
               item.path === '/dashboard'
-                ? location.pathname === '/dashboard'
+                ? location.pathname === '/dashboard' || location.pathname === '/'
                 : location.pathname.startsWith(item.path)
 
             return (
