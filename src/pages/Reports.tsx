@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Download, Eye, Plus, ChevronLeft, ShieldCheck, AlertTriangle, FileText, HardHat, FileCheck } from 'lucide-react'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { formatDate } from '../lib/utils'
+import { useDemo } from '../contexts/DemoContext'
+import DemoHighlight from '../components/shared/DemoHighlight'
+import { useEffect } from 'react'
 
 const reportTypeLabels: Record<string, string> = {
   COMPLIANCE: 'Compliance',
@@ -18,6 +21,14 @@ export default function Reports() {
   const [typeFilter, setTypeFilter] = useState<string>('ALL')
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
+
+  const { isActive: demoActive, currentStep } = useDemo()
+
+  useEffect(() => {
+    if (demoActive && currentStep === 8 && !previewMode) {
+      setPreviewMode(true)
+    }
+  }, [demoActive, currentStep, previewMode])
 
   // Inject requested reports into the list for the UI
   const displayReports = [
@@ -54,10 +65,11 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Report Document Wrapper */}
-        <div className="bg-white text-black p-8 rounded shadow-2xl min-h-[800px]">
-          {/* Header */}
-          <div className="border-b-2 border-gray-200 pb-6 mb-6">
+        <DemoHighlight step={8} tooltip="Generate statutory compliance reports with a single click, integrating field evidence, risk factors, and contractor performance.">
+          {/* Report Document Wrapper */}
+          <div className="bg-white text-black p-8 rounded shadow-2xl min-h-[800px]">
+            {/* Header */}
+            <div className="border-b-2 border-gray-200 pb-6 mb-6">
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">Monthly Compliance Report</h1>
@@ -200,6 +212,7 @@ export default function Reports() {
 
           </div>
         </div>
+        </DemoHighlight>
       </div>
     )
   }

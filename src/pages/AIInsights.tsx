@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Brain, Search, ArrowRight, FileText, AlertTriangle, Zap, CheckCircle2, Info } from 'lucide-react'
-
-
+import { useDemo } from '../contexts/DemoContext'
+import DemoHighlight from '../components/shared/DemoHighlight'
 const SUGGESTED_QUESTIONS = [
   "Why is WCL-04 high risk?",
   "Which mines have overdue CAPA?",
@@ -29,6 +29,14 @@ export default function AIInsightsPage() {
       setActiveQuery(textToSubmit)
     }, 600)
   }
+
+  // Auto-trigger demo query when Step 4 becomes active
+  const { isActive: demoActive, currentStep } = useDemo()
+  useEffect(() => {
+    if (demoActive && currentStep === 4 && !activeQuery && !isTyping) {
+      handleQuerySubmit(undefined, "Why is WCL-04 high risk?")
+    }
+  }, [demoActive, currentStep, activeQuery, isTyping])
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] max-w-5xl mx-auto">
@@ -71,8 +79,9 @@ export default function AIInsightsPage() {
 
         {activeQuery === "Why is WCL-04 high risk?" && (
           <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
-            {/* Answer Box */}
-            <div className="bg-surface-raised border border-border rounded-lg overflow-hidden">
+            <DemoHighlight step={4} tooltip="Khanan AI correlates field evidence with statutory obligations to explain risk scores.">
+              {/* Answer Box */}
+              <div className="bg-surface-raised border border-border rounded-lg overflow-hidden">
               <div className="p-5 border-b border-border bg-mine-black/50">
                 <p className="text-[14px] text-text-primary leading-relaxed">
                   <strong className="text-amber">WCL-04 is classified as HIGH RISK</strong> in the prototype because of multiple contributing factors identified in recent inspections and telemetry data.
@@ -135,9 +144,10 @@ export default function AIInsightsPage() {
                       </button>
                     </div>
                   </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </DemoHighlight>
 
             {/* AI Reasoning Trace */}
             <div className="border border-border-light rounded p-4 bg-mine-black/30">

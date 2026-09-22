@@ -27,6 +27,7 @@ import { mines } from '../data/mines'
 import { riskAlerts } from '../data/risk-alerts'
 import { capas } from '../data/capas'
 import { useRole } from '../contexts/RoleContext'
+import DemoHighlight from '../components/shared/DemoHighlight'
 
 // Data mocks
 const complianceTrend = [
@@ -100,16 +101,18 @@ function CorporateDashboard() {
           <div className="p-6 flex-1 border-b border-border min-h-[300px] flex flex-col justify-center relative bg-mine-black/20">
             <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber/20 via-mine-black to-mine-black" />
             <div className="relative w-full max-w-2xl mx-auto space-y-3 z-10">
-              <div className="bg-red-dim border border-red/30 p-4 rounded-lg flex items-center justify-between cursor-pointer hover:bg-red/10 transition-colors shadow-lg shadow-red/5" onClick={() => navigate('/mines/mine-wcl-04')}>
-                <div className="flex items-center gap-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red animate-pulse" />
-                  <div>
-                    <h4 className="text-[15px] font-medium text-text-primary font-mono tracking-wide">WCL-04 Wani Opencast</h4>
-                    <p className="text-[12px] text-red-light mt-0.5 font-medium">Critical Risk • 65% Compliance</p>
+              <DemoHighlight step={1} tooltip="An inspection finding has increased the compliance risk of WCL-04.">
+                <div className="bg-red-dim border border-red/30 p-4 rounded-lg flex items-center justify-between cursor-pointer hover:bg-red/10 transition-colors shadow-lg shadow-red/5" onClick={() => navigate('/mines/mine-wcl-04')}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red animate-pulse" />
+                    <div>
+                      <h4 className="text-[15px] font-medium text-text-primary font-mono tracking-wide">WCL-04 Wani Opencast</h4>
+                      <p className="text-[12px] text-red-light mt-0.5 font-medium">Critical Risk • 65% Compliance</p>
+                    </div>
                   </div>
+                  <Button variant="destructive" size="sm">View Mine</Button>
                 </div>
-                <Button variant="destructive" size="sm">View Mine</Button>
-              </div>
+              </DemoHighlight>
               <div className="bg-amber-dim border border-amber/30 p-4 rounded-lg flex items-center justify-between opacity-90 cursor-pointer hover:opacity-100 transition-opacity" onClick={() => navigate('/mines/mine-ncl-12')}>
                 <div className="flex items-center gap-4">
                   <div className="w-2 h-2 rounded-full bg-amber" />

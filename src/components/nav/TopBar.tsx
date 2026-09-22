@@ -4,6 +4,7 @@ import { Bell, ChevronDown, User, ChevronRight, Search, AlertTriangle, ShieldChe
 import { cn } from '../../lib/utils'
 import { useRole } from '../../contexts/RoleContext'
 import type { Role } from '../../contexts/RoleContext'
+import { useDemo } from '../../contexts/DemoContext'
 
 const routeTitles: Record<string, string> = {
   '/': 'Command Center',
@@ -58,6 +59,7 @@ export default function TopBar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { role, setRole } = useRole()
+  const { isActive: demoActive, startDemo } = useDemo()
   
   const [selectedSubsidiary, setSelectedSubsidiary] = useState('All Subsidiaries')
   const [showSubsidiaryDropdown, setShowSubsidiaryDropdown] = useState(false)
@@ -285,6 +287,17 @@ export default function TopBar() {
             </>
           )}
         </div>
+
+        {/* Demo Mode Trigger */}
+        {!demoActive && (
+          <button
+            onClick={startDemo}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-amber/10 hover:bg-amber/20 border border-amber/30 hover:border-amber/50 text-amber rounded text-[12px] font-semibold tracking-wide uppercase transition-all"
+          >
+            <div className="w-2 h-2 rounded-full bg-amber animate-pulse"></div>
+            Demo Mode
+          </button>
+        )}
 
         {/* User / Role Switcher */}
         <div className="relative border-l border-border pl-4">

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import * as maplibregl from 'maplibre-gl'
-import { Search, RotateCcw, ShieldAlert, Activity } from 'lucide-react'
+import { Search, RotateCcw, ShieldAlert, Activity, Navigation, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { mines } from '../data/mines'
 import { cn } from '../lib/utils'
+import DemoHighlight from '../components/shared/DemoHighlight'
 
 const riskSeverity = { HIGH: 3, MEDIUM: 2, LOW: 1 }
 
@@ -242,9 +243,8 @@ export default function GISRiskMap() {
             const badgeClass = riskColors[mine.riskLevel]
             const openCapaCount = mine.riskLevel === 'HIGH' ? 7 : mine.riskLevel === 'MEDIUM' ? 3 : 0
 
-            return (
+            const card = (
               <div 
-                key={mine.id}
                 onClick={() => {
                   map.current?.flyTo({ center: mine.coordinates, zoom: 9 })
                 }}
@@ -272,6 +272,16 @@ export default function GISRiskMap() {
                 </div>
               </div>
             )
+
+            if (mine.code === 'WCL-04') {
+              return (
+                <DemoHighlight key={mine.id} step={2} tooltip="The risk engine prioritizes WCL-04 for attention.">
+                  {card}
+                </DemoHighlight>
+              )
+            }
+
+            return <div key={mine.id}>{card}</div>
           })}
           
           {sortedMines.length === 0 && (

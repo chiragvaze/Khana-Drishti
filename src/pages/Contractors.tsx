@@ -4,6 +4,9 @@ import { KPICard } from '../components/shared/KPICard'
 import { cn } from '../lib/utils'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../components/ui/ToastProvider'
+import { useDemo } from '../contexts/DemoContext'
+import DemoHighlight from '../components/shared/DemoHighlight'
+import { useEffect } from 'react'
 
 // ----------------------------------------------------------------------
 // Mock Data (Contractor Governance)
@@ -126,6 +129,14 @@ export default function Contractors() {
   
   const navigate = useNavigate()
   const { toast } = useToast()
+  
+  const { isActive: demoActive, currentStep } = useDemo()
+
+  useEffect(() => {
+    if (demoActive && currentStep === 7 && !selectedContractorId) {
+      setSelectedContractorId('C-001')
+    }
+  }, [demoActive, currentStep, selectedContractorId])
 
   const mines = useMemo(() => ['ALL', ...new Set(mockContractors.map(c => c.mine))], [])
   const statuses = useMemo(() => ['ALL', ...new Set(mockContractors.map(c => c.overallStatus))], [])
@@ -296,9 +307,10 @@ export default function Contractors() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-              
-              {/* Prototype Scorecard */}
+            <DemoHighlight step={7} tooltip="Contractor safety scores and active CAPAs are linked to ensure full accountability across the supply chain.">
+              <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                
+                {/* Prototype Scorecard */}
               <section>
                 <h3 className="font-heading text-[13px] font-semibold text-text-secondary tracking-widest mb-1 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-amber" /> PROTOTYPE SCORECARD
@@ -422,7 +434,8 @@ export default function Contractors() {
                 </section>
               </div>
 
-            </div>
+              </div>
+            </DemoHighlight>
           </>
         )}
       </div>

@@ -1,7 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Camera, Search, Image, Film, FileText, Radio, Mic, Brain } from 'lucide-react'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { KPICard } from '../components/shared/KPICard'
+import DemoHighlight from '../components/shared/DemoHighlight'
+import { useDemo } from '../contexts/DemoContext'
 import { evidence } from '../data/evidence'
 import { formatDateTime, cn } from '../lib/utils'
 import type { EvidenceType } from '../data/types'
@@ -29,6 +31,15 @@ export default function EvidencePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null)
   const [imageError, setImageError] = useState<boolean>(false)
+
+  const { isActive: demoActive, currentStep } = useDemo()
+
+  useEffect(() => {
+    if (demoActive && currentStep === 3 && !selectedEvidence) {
+      const kdE102 = evidence.find(e => e.id === 'KD-E102')
+      if (kdE102) setSelectedEvidence(kdE102.id)
+    }
+  }, [demoActive, currentStep, selectedEvidence])
 
   // Reset image error state when selected evidence changes
   useMemo(() => {
@@ -160,7 +171,8 @@ export default function EvidencePage() {
           )}
         </div>
 
-        {selected && (
+        {selected && (() => {
+          const detailPane = (
           <div className="w-[360px] flex-shrink-0 bg-surface-raised border border-border rounded p-5 self-start sticky top-0">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-[15px] font-bold text-text-primary tracking-wide">EVIDENCE</h3>
@@ -276,7 +288,16 @@ export default function EvidencePage() {
               </div>
             </div>
           </div>
-        )}
+        )
+        if (selected.id === 'KD-E102') {
+          return (
+            <DemoHighlight step={3} tooltip="Field evidence is linked directly to the mine and inspection record.">
+              {detailPane}
+            </DemoHighlight>
+          )
+        }
+        return detailPane
+        })()}
       </div>
     </div>
   )

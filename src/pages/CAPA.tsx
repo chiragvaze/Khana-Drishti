@@ -4,6 +4,8 @@ import { StatusBadge } from '../components/shared/StatusBadge'
 import { KPICard } from '../components/shared/KPICard'
 import { cn } from '../lib/utils'
 import { useToast } from '../components/ui/ToastProvider'
+import { useDemo } from '../contexts/DemoContext'
+import DemoHighlight from '../components/shared/DemoHighlight'
 
 // ----------------------------------------------------------------------
 // Mock Data (CAPA Management)
@@ -165,6 +167,15 @@ export default function CAPAPage() {
     const timer = setInterval(() => setCapas(c => [...c]), 1000) // Force re-render for countdown
     return () => clearInterval(timer)
   }, [])
+
+  const { isActive: demoActive, currentStep } = useDemo()
+
+  // Auto-select KD-102 for Demo Step 6
+  useEffect(() => {
+    if (demoActive && currentStep === 6 && !selectedCapaId) {
+      setSelectedCapaId('KD-102')
+    }
+  }, [demoActive, currentStep, selectedCapaId])
 
   const openCount = capas.filter(c => c.status === 'OPEN').length
   const escalatedCount = capas.filter(c => c.status === 'ESCALATED').length
@@ -392,9 +403,10 @@ export default function CAPAPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
-              {/* Header Info */}
+            <DemoHighlight step={6} tooltip="The Corrective & Preventive Action (CAPA) is tracked against a strict SLA timer to ensure accountability.">
+              <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                
+                {/* Meta Details */}
               <div className="bg-mine-black border border-border rounded-lg p-5">
                 <h3 className="text-[16px] font-semibold text-text-primary mb-4">{selectedCapa.observation}</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -551,20 +563,26 @@ export default function CAPAPage() {
                 <h4 className="font-heading text-[13px] font-semibold text-text-secondary tracking-widest mb-3">ACTIVITY LOG</h4>
                 <div className="bg-mine-black border border-border rounded p-4 space-y-4 max-h-[200px] overflow-y-auto">
                   {selectedCapa.activities.map((act, idx) => (
-                    <div key={idx} className="flex gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber mt-1.5 shrink-0" />
-                      <div>
-                        <p className="text-[12px] text-text-primary">{act.desc}</p>
-                        <p className="text-[10px] text-text-muted font-mono mt-0.5">
-                          {new Date(act.timestamp).toLocaleString()}
-                        </p>
+                    <div key={idx} className="flex gap-4">
+                      <div className="w-16 flex-shrink-0 text-[10px] text-text-muted font-mono pt-1 text-right">
+                        {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <div className="relative pb-6 flex-1">
+                        {idx !== selectedCapa.activities.length - 1 && (
+                          <div className="absolute top-4 left-[5px] bottom-0 w-px bg-border z-0" />
+                        )}
+                        <div className="absolute top-1.5 left-0 w-3 h-3 rounded-full bg-mine-black border border-amber z-10" />
+                        <div className="pl-6 text-[12px] text-text-secondary">
+                          {act.desc}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-            </div>
+              </div>
+            </DemoHighlight>
           </>
         )}
       </div>

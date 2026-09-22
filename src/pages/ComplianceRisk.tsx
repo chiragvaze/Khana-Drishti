@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Search, ShieldAlert, AlertTriangle, ArrowDown, Activity, CheckCircle, FileText, Zap, X } from 'lucide-react'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { KPICard } from '../components/shared/KPICard'
 import { cn } from '../lib/utils'
+import { useDemo } from '../contexts/DemoContext'
+import DemoHighlight from '../components/shared/DemoHighlight'
 
 // ----------------------------------------------------------------------
 // Mock Data (Compliance Risk Engine)
@@ -100,8 +102,16 @@ export default function ComplianceRisk() {
   const [domainFilter, setDomainFilter] = useState<string>('ALL')
   const [selectedRiskId, setSelectedRiskId] = useState<string | null>(null)
 
+  const { isActive: demoActive, currentStep } = useDemo()
+
   const domains = useMemo(() => ['ALL', ...new Set(mockRisks.map(r => r.domain))], [])
 
+  // Auto-select WCL-04 Risk for Demo Step 5
+  useEffect(() => {
+    if (demoActive && currentStep === 5 && !selectedRiskId) {
+      setSelectedRiskId('KD-R102')
+    }
+  }, [demoActive, currentStep, selectedRiskId])
   const filteredRisks = useMemo(() => {
     return mockRisks.filter(r => {
       const matchSearch = r.mine.toLowerCase().includes(search.toLowerCase()) || r.observation.toLowerCase().includes(search.toLowerCase()) || r.id.toLowerCase().includes(search.toLowerCase())
@@ -254,11 +264,12 @@ export default function ComplianceRisk() {
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
               
               {/* WHY THIS WAS FLAGGED */}
-              <section>
-                <h3 className="font-heading text-[14px] font-semibold text-amber tracking-widest mb-4 flex items-center gap-2">
-                  <Activity className="w-4 h-4" /> WHY THIS WAS FLAGGED
-                </h3>
-                <div className="space-y-4 bg-mine-black border border-border p-5 rounded-lg">
+              <DemoHighlight step={5} tooltip="The Compliance & Risk Engine breaks down exactly why WCL-04's risk score was elevated, linking evidence to statutory obligations.">
+                <section>
+                  <h3 className="font-heading text-[14px] font-semibold text-amber tracking-widest mb-4 flex items-center gap-2">
+                    <Activity className="w-4 h-4" /> WHY THIS WAS FLAGGED
+                  </h3>
+                  <div className="space-y-4 bg-mine-black border border-border p-5 rounded-lg">
                   <div>
                     <p className="text-[11px] text-text-muted uppercase tracking-wider mb-1">Evidence</p>
                     <p className="text-[13px] text-text-primary bg-surface p-2 border border-border/50 rounded">{selectedRisk.evidence}</p>
@@ -299,6 +310,7 @@ export default function ComplianceRisk() {
                   </div>
                 </div>
               </section>
+              </DemoHighlight>
 
               {/* LOGICAL CHAIN */}
               <section>
