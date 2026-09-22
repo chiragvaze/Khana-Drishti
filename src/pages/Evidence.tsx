@@ -111,10 +111,12 @@ export default function EvidencePage() {
                     </div>
                   </div>
                   <div className="p-3">
+                    <p className="text-[11px] font-mono text-amber mb-1">{ev.id}</p>
                     <p className="text-[11px] font-medium text-text-primary truncate">{ev.fileName}</p>
-                    <p className="text-[10px] text-text-muted mt-0.5">{ev.mineName}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">{ev.mineName} • {ev.location || ev.geoTag.split(' ')[0]}</p>
                     <div className="flex items-center gap-1.5 mt-2">
                       <StatusBadge status={ev.aiAnalysisStatus} />
+                      {ev.confidence && <span className="text-[10px] bg-mine-black px-1.5 py-0.5 rounded text-amber">{ev.confidence}%</span>}
                     </div>
                   </div>
                 </div>
@@ -125,21 +127,25 @@ export default function EvidencePage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border bg-mine-black/50">
+                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">ID</th>
                     <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Type</th>
-                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">File Name</th>
                     <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Mine</th>
-                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Captured</th>
-                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">AI Status</th>
+                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Location</th>
+                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Time</th>
+                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">AI Class.</th>
+                    <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">Conf.</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filtered.map((ev) => (
                     <tr key={ev.id} onClick={() => setSelectedEvidence(ev.id)} className="hover:bg-mine-black/50 cursor-pointer transition-colors">
+                      <td className="px-4 py-3 text-[12px] font-mono text-text-secondary">{ev.id}</td>
                       <td className="px-4 py-3"><span className={cn('p-1.5 rounded inline-flex', typeColors[ev.type])}>{typeIcons[ev.type]}</span></td>
-                      <td className="px-4 py-3 text-[12px] text-text-primary">{ev.fileName}</td>
-                      <td className="px-4 py-3 text-[12px] text-text-secondary">{ev.mineName}</td>
+                      <td className="px-4 py-3 text-[12px] text-text-primary">{ev.mineName}</td>
+                      <td className="px-4 py-3 text-[12px] text-text-secondary truncate max-w-[120px]">{ev.location || ev.geoTag}</td>
                       <td className="px-4 py-3 text-[12px] font-mono text-text-secondary">{formatDateTime(ev.capturedDate)}</td>
                       <td className="px-4 py-3"><StatusBadge status={ev.aiAnalysisStatus} /></td>
+                      <td className="px-4 py-3 text-[12px] font-mono text-amber">{ev.confidence ? `${ev.confidence}%` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -154,48 +160,94 @@ export default function EvidencePage() {
               <h3 className="font-heading text-[15px] font-bold text-text-primary tracking-wide">EVIDENCE</h3>
               <button onClick={() => setSelectedEvidence(null)} className="text-text-muted hover:text-text-secondary text-[12px]">✕</button>
             </div>
-            <div className="space-y-3">
-              <div className="h-32 bg-mine-black rounded flex items-center justify-center">
-                <div className={cn('p-4 rounded', typeColors[selected.type])}>
-                  {typeIcons[selected.type]}
+            <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto pr-2 custom-scrollbar">
+              {selected.type === 'PHOTO' ? (
+                <div className="h-48 bg-mine-black rounded overflow-hidden relative">
+                  <img src="https://placehold.co/600x400/151515/F59E0B?text=EVIDENCE+PREVIEW" alt="Evidence" className="w-full h-full object-cover opacity-80" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded"></div>
+                  <div className="absolute top-2 right-2 bg-black/80 backdrop-blur text-white text-[9px] px-2 py-1 rounded font-mono">SIMULATED ASSET</div>
                 </div>
-              </div>
-              <div>
-                <p className="text-[10px] text-text-muted uppercase tracking-wider">File</p>
-                <p className="text-[12px] font-mono text-text-primary mt-0.5">{selected.fileName}</p>
-              </div>
+              ) : (
+                <div className="h-32 bg-mine-black rounded flex items-center justify-center">
+                  <div className={cn('p-4 rounded', typeColors[selected.type])}>
+                    {typeIcons[selected.type]}
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase tracking-wider">Evidence ID</p>
+                  <p className="text-[12px] font-mono text-text-primary mt-0.5">{selected.id}</p>
+                </div>
                 <div>
                   <p className="text-[10px] text-text-muted uppercase tracking-wider">Type</p>
                   <p className="text-[12px] text-text-primary mt-0.5">{selected.type.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase tracking-wider">Inspection</p>
+                  <p className="text-[12px] font-mono text-text-primary mt-0.5">{selected.inspectionId}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-text-muted uppercase tracking-wider">Mine</p>
                   <p className="text-[12px] text-text-primary mt-0.5">{selected.mineName}</p>
                 </div>
               </div>
+              
               <div>
-                <p className="text-[10px] text-text-muted uppercase tracking-wider">Captured By</p>
-                <p className="text-[12px] text-text-primary mt-0.5">{selected.capturedBy}</p>
-                <p className="text-[11px] font-mono text-text-muted">{formatDateTime(selected.capturedDate)}</p>
+                <p className="text-[10px] text-text-muted uppercase tracking-wider">File</p>
+                <p className="text-[12px] font-mono text-text-primary mt-0.5">{selected.fileName}</p>
               </div>
-              <div>
-                <p className="text-[10px] text-text-muted uppercase tracking-wider">Geo Tag</p>
-                <p className="text-[11px] font-mono text-text-secondary mt-0.5">{selected.geoTag}</p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase tracking-wider">Timestamp</p>
+                  <p className="text-[11px] font-mono text-text-secondary mt-0.5">{formatDateTime(selected.capturedDate)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase tracking-wider">Location / GeoTag</p>
+                  <p className="text-[11px] font-mono text-text-secondary mt-0.5">{selected.location || selected.geoTag}</p>
+                </div>
               </div>
+
               <div className="pt-3 border-t border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <Brain className="w-4 h-4 text-amber" />
-                  <span className="text-[10px] text-text-muted uppercase tracking-wider">AI Analysis</span>
+                  <span className="text-[10px] text-text-muted uppercase tracking-wider">AI Classification</span>
                   <StatusBadge status={selected.aiAnalysisStatus} />
+                  {selected.confidence && <span className="text-[11px] font-mono text-amber ml-auto">{selected.confidence}% Conf.</span>}
                 </div>
                 {selected.aiFindings && (
                   <p className="text-[12px] text-text-secondary leading-relaxed">{selected.aiFindings}</p>
                 )}
               </div>
+
+              {(selected.matchedObligation || selected.associatedObservation || selected.associatedCAPA) && (
+                <div className="pt-3 border-t border-border space-y-3">
+                  {selected.matchedObligation && (
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider block mb-1">Matched Obligation</span>
+                      <span className="text-[12px] text-text-primary bg-mine-black px-2 py-1 rounded inline-block">{selected.matchedObligation}</span>
+                    </div>
+                  )}
+                  {selected.associatedObservation && (
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider block mb-1">Associated Observation</span>
+                      <span className="text-[12px] text-text-primary bg-mine-black px-2 py-1 rounded inline-block">{selected.associatedObservation}</span>
+                    </div>
+                  )}
+                  {selected.associatedCAPA && (
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider block mb-1">Associated CAPA</span>
+                      <span className="text-[12px] font-mono text-amber bg-amber-dim/20 border border-amber/20 px-2 py-1 rounded inline-block">{selected.associatedCAPA}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-1 pt-2">
                 {selected.tags.map((tag) => (
-                  <span key={tag} className="px-2 py-0.5 bg-mine-black text-text-muted text-[10px] rounded">{tag}</span>
+                  <span key={tag} className="px-2 py-0.5 bg-mine-black text-text-muted text-[10px] rounded">#{tag}</span>
                 ))}
               </div>
             </div>

@@ -44,6 +44,11 @@ export interface Inspection {
   highRiskCount: number
   findings: string
   riskLevel: RiskLevel
+  evidenceCount?: number
+  checklist?: { item: string; status: 'PASS' | 'FAIL' | 'NA' }[]
+  observationsList?: { title: string; risk: RiskLevel }[]
+  aiVerification?: string
+  applicableObligations?: string[]
 }
 
 export interface Observation {
@@ -128,6 +133,11 @@ export interface Evidence {
   aiAnalysisStatus: 'PENDING' | 'ANALYZED' | 'FLAGGED' | 'VERIFIED'
   aiFindings?: string
   tags: string[]
+  confidence?: number
+  location?: string
+  matchedObligation?: string
+  associatedObservation?: string
+  associatedCAPA?: string
 }
 
 export interface AIInsight {

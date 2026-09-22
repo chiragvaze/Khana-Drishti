@@ -15,6 +15,26 @@ export const inspections: Inspection[] = [
     highRiskCount: 2,
     findings: 'Unsafe ventilation conditions detected in Panel 3B. Methane levels approaching threshold in return airway. Ventilation ducting damaged at two locations. Immediate CAPA required.',
     riskLevel: 'HIGH',
+    evidenceCount: 5,
+    checklist: [
+      { item: 'Ventilation plan updated and available', status: 'PASS' },
+      { item: 'Main mechanical ventilator functioning', status: 'PASS' },
+      { item: 'Auxiliary fan interlocked with power supply', status: 'FAIL' },
+      { item: 'Air velocity in workings above statutory limit', status: 'FAIL' },
+      { item: 'Methane detectors calibrated', status: 'PASS' }
+    ],
+    observationsList: [
+      { title: 'Torn ventilation ducting in Panel 3B', risk: 'HIGH' },
+      { title: 'Aux fan vibration abnormal', risk: 'MEDIUM' },
+      { title: 'Methane levels rising in return airway', risk: 'HIGH' },
+      { title: 'Inadequate air velocity at face', risk: 'MEDIUM' }
+    ],
+    aiVerification: 'AI analysis verified 4 observations with 92% confidence based on uploaded photos and telemetry data.',
+    applicableObligations: [
+      'CMR 2017: Reg 153 (Standard of ventilation)',
+      'CMR 2017: Reg 158 (Velocity of air current)',
+      'CMR 2017: Reg 160 (Auxiliary fans)'
+    ]
   },
   {
     id: 'insp-2026-0914-secl07',

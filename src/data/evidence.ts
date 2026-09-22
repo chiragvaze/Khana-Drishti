@@ -2,6 +2,26 @@ import type { Evidence } from './types'
 
 export const evidence: Evidence[] = [
   {
+    id: 'KD-E102',
+    inspectionId: 'insp-2026-0918-wcl04',
+    observationId: 'obs-wcl04-vent-001',
+    mineId: 'mine-wcl-04',
+    mineName: 'WCL-04',
+    type: 'PHOTO',
+    fileName: 'KD_E102_Ventilation_Area.jpg',
+    capturedBy: 'Inspector',
+    capturedDate: '2026-09-18T10:35:00',
+    geoTag: 'Ventilation area',
+    location: 'Ventilation area',
+    aiAnalysisStatus: 'FLAGGED',
+    aiFindings: 'Potential ventilation safety issue',
+    confidence: 94,
+    tags: ['ventilation', 'safety'],
+    matchedObligation: 'CMR 2017: Reg 153',
+    associatedObservation: 'Torn ventilation ducting in Panel 3B',
+    associatedCAPA: 'CAPA-2026-0042',
+  },
+  {
     id: 'ev-wcl04-photo-001',
     inspectionId: 'insp-2026-0918-wcl04',
     observationId: 'obs-wcl04-vent-001',
