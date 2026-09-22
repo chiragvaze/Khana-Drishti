@@ -1,178 +1,195 @@
-import { useState, useMemo } from 'react'
-import { Brain, Search, ShieldCheck, AlertTriangle, TrendingUp, Cpu } from 'lucide-react'
-import { StatusBadge } from '../components/shared/StatusBadge'
-import { KPICard } from '../components/shared/KPICard'
-import { aiInsights } from '../data/ai-insights'
-import { formatDateTime, cn } from '../lib/utils'
+import { useState } from 'react'
+import { Brain, Search, ArrowRight, FileText, AlertTriangle, Zap, CheckCircle2, Info } from 'lucide-react'
 
-const categoryIcons: Record<string, React.ReactNode> = {
-  SAFETY: <AlertTriangle className="w-4 h-4 text-red" />,
-  COMPLIANCE: <ShieldCheck className="w-4 h-4 text-amber" />,
-  ENVIRONMENTAL: <TrendingUp className="w-4 h-4 text-green" />,
-  PREDICTIVE: <Brain className="w-4 h-4 text-blue-400" />,
-  OPERATIONAL: <Cpu className="w-4 h-4 text-text-secondary" />,
-}
+
+const SUGGESTED_QUESTIONS = [
+  "Why is WCL-04 high risk?",
+  "Which mines have overdue CAPA?",
+  "Which contractor requires review?",
+  "What changed in compliance this week?"
+]
 
 export default function AIInsightsPage() {
-  const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('ALL')
-  const [severityFilter, setSeverityFilter] = useState<string>('ALL')
-  const [expandedInsight, setExpandedInsight] = useState<string | null>(aiInsights[0]?.id || null)
+  const [query, setQuery] = useState('')
+  const [activeQuery, setActiveQuery] = useState<string | null>(null)
+  const [isTyping, setIsTyping] = useState(false)
 
-  const filtered = useMemo(() => {
-    return aiInsights.filter((i) => {
-      const matchSearch =
-        i.title.toLowerCase().includes(search.toLowerCase()) ||
-        i.description.toLowerCase().includes(search.toLowerCase()) ||
-        i.mineName.toLowerCase().includes(search.toLowerCase())
-      const matchCat = categoryFilter === 'ALL' || i.category === categoryFilter
-      const matchSev = severityFilter === 'ALL' || i.severity === severityFilter
-      return matchSearch && matchCat && matchSev
-    })
-  }, [search, categoryFilter, severityFilter])
+  const handleQuerySubmit = (e?: React.FormEvent, q?: string) => {
+    if (e) e.preventDefault()
+    const textToSubmit = q || query
+    if (!textToSubmit.trim()) return
 
-  const highCount = aiInsights.filter((i) => i.severity === 'HIGH').length
-  const avgConfidence = Math.round(aiInsights.reduce((s, i) => s + i.confidence, 0) / aiInsights.length)
+    setQuery(textToSubmit)
+    setIsTyping(true)
+    setActiveQuery(null)
+
+    // Simulate AI thinking time for the demo
+    setTimeout(() => {
+      setIsTyping(false)
+      setActiveQuery(textToSubmit)
+    }, 600)
+  }
 
   return (
-    <div className="space-y-5">
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPICard label="Total AI Insights" value={aiInsights.length} icon={<Brain className="w-4 h-4" />} />
-        <KPICard label="Critical/High" value={highCount} variant="danger" />
-        <KPICard label="Avg. Confidence" value={`${avgConfidence}%`} subtitle="across all" />
-        <KPICard label="Acted Upon" value={aiInsights.filter((i) => i.status === 'ACTED_UPON').length} variant="success" />
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-[360px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
-            placeholder="Search AI insights..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-surface-raised border border-border rounded text-[13px] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-amber/50"
-          />
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="mb-8 text-center mt-4">
+        <div className="inline-flex items-center justify-center p-3 bg-amber-dim rounded-full mb-4">
+          <Brain className="w-8 h-8 text-amber" />
         </div>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 bg-surface-raised border border-border rounded text-[12px] text-text-secondary focus:outline-none">
-          <option value="ALL">All Categories</option>
-          <option value="SAFETY">Safety</option>
-          <option value="COMPLIANCE">Compliance</option>
-          <option value="ENVIRONMENTAL">Environmental</option>
-          <option value="PREDICTIVE">Predictive</option>
-          <option value="OPERATIONAL">Operational</option>
-        </select>
-        <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} className="px-3 py-2 bg-surface-raised border border-border rounded text-[12px] text-text-secondary focus:outline-none">
-          <option value="ALL">All Severities</option>
-          <option value="HIGH">High</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="LOW">Low</option>
-        </select>
+        <h1 className="font-heading text-2xl font-bold text-text-primary tracking-wide">KHANAN AI</h1>
+        <p className="text-[13px] text-text-muted mt-2 font-mono uppercase tracking-widest">
+          Evidence-grounded compliance intelligence
+        </p>
       </div>
 
-      {/* Insight Cards */}
-      <div className="space-y-3">
-        {filtered.map((insight) => {
-          const isExpanded = expandedInsight === insight.id
-          return (
-            <div
-              key={insight.id}
-              className={cn(
-                'bg-surface-raised border rounded transition-all',
-                insight.severity === 'HIGH' ? 'border-red/20' : 'border-border',
-                isExpanded && 'border-amber/30'
-              )}
-            >
-              {/* Header */}
-              <div
-                className="p-4 cursor-pointer"
-                onClick={() => setExpandedInsight(isExpanded ? null : insight.id)}
+      {/* Workspace Area */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar pb-10 space-y-8">
+        {!activeQuery && !isTyping && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto mt-8">
+            {SUGGESTED_QUESTIONS.map((q) => (
+              <button
+                key={q}
+                onClick={() => handleQuerySubmit(undefined, q)}
+                className="text-left p-4 bg-surface-raised border border-border rounded hover:border-amber/50 hover:bg-mine-black transition-colors group flex justify-between items-center"
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">{categoryIcons[insight.category]}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <StatusBadge status={insight.severity} />
-                      <StatusBadge status={insight.status} />
-                      <span className="text-[10px] text-text-muted">{insight.category}</span>
-                      <span className="text-[10px] text-text-muted font-mono ml-auto">{insight.mineName}</span>
-                    </div>
-                    <h4 className="text-[13px] font-medium text-text-primary mt-2">{insight.title}</h4>
-                    <p className="text-[12px] text-text-secondary mt-1 line-clamp-2">{insight.description}</p>
+                <span className="text-[13px] text-text-secondary group-hover:text-text-primary">{q}</span>
+                <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-amber transition-colors" />
+              </button>
+            ))}
+          </div>
+        )}
 
-                    {/* Confidence Bar */}
-                    <div className="flex items-center gap-3 mt-3">
-                      <span className="text-[10px] text-text-muted">Confidence:</span>
-                      <div className="w-32 h-2 bg-mine-black rounded overflow-hidden">
-                        <div
-                          className={cn(
-                            'h-full rounded',
-                            insight.confidence >= 90 ? 'bg-green' : insight.confidence >= 75 ? 'bg-amber' : 'bg-red'
-                          )}
-                          style={{ width: `${insight.confidence}%` }}
-                        />
+        {isTyping && (
+          <div className="flex items-center justify-center space-x-2 text-text-muted mt-12">
+            <div className="w-2 h-2 bg-amber rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 bg-amber rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-2 h-2 bg-amber rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <span className="text-[12px] ml-2 font-mono uppercase">Analyzing compliance data...</span>
+          </div>
+        )}
+
+        {activeQuery === "Why is WCL-04 high risk?" && (
+          <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
+            {/* Answer Box */}
+            <div className="bg-surface-raised border border-border rounded-lg overflow-hidden">
+              <div className="p-5 border-b border-border bg-mine-black/50">
+                <p className="text-[14px] text-text-primary leading-relaxed">
+                  <strong className="text-amber">WCL-04 is classified as HIGH RISK</strong> in the prototype because of multiple contributing factors identified in recent inspections and telemetry data.
+                </p>
+              </div>
+
+              <div className="p-5 space-y-6">
+                {/* Risk Factors */}
+                <div>
+                  <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 text-red" /> Identified Risk Factors
+                  </h3>
+                  <ol className="list-decimal list-inside space-y-2 text-[13px] text-text-secondary">
+                    <li className="pl-2">Ventilation CAPA overdue</li>
+                    <li className="pl-2">Missing verification evidence</li>
+                    <li className="pl-2">Contractor safety observation</li>
+                  </ol>
+                </div>
+
+                {/* Risk Propagation Flow */}
+                <div>
+                  <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-semibold mb-3">
+                    Risk Propagation
+                  </h3>
+                  <div className="flex items-center flex-wrap gap-2 text-[12px] font-mono text-text-primary bg-mine-black p-4 rounded border border-border-light">
+                    <span className="bg-red-dim/20 text-red-light px-2 py-1 rounded">Ventilation CAPA</span>
+                    <ArrowRight className="w-4 h-4 text-text-muted" />
+                    <span className="bg-amber-dim/20 text-amber px-2 py-1 rounded">Compliance risk</span>
+                    <ArrowRight className="w-4 h-4 text-text-muted" />
+                    <span className="bg-blue-950/40 text-blue-400 px-2 py-1 rounded">Inspection priority</span>
+                  </div>
+                </div>
+
+                {/* Evidence Card */}
+                <div>
+                  <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5 text-amber" /> Key Evidence
+                  </h3>
+                  <div className="bg-mine-black border border-border rounded p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[14px] font-mono font-bold text-text-primary">KD-E102</span>
+                        <span className="text-[10px] bg-green-dim text-green-light px-1.5 py-0.5 rounded flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> 94% Confidence
+                        </span>
                       </div>
-                      <span className="text-[12px] font-mono font-bold text-text-primary">{insight.confidence}%</span>
-                      <span className="text-[10px] text-text-muted ml-auto">{formatDateTime(insight.createdDate)}</span>
+                      <p className="text-[12px] text-text-secondary mt-2">
+                        <span className="text-text-muted">Applicable obligation:</span> [Demo clause reference] CMR 2017: Reg 153
+                      </p>
+                    </div>
+                    <div className="flex gap-2 w-full md:w-auto">
+                      <button className="flex-1 md:flex-none px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
+                        View Evidence
+                      </button>
+                      <button className="flex-1 md:flex-none px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
+                        View Obligation
+                      </button>
+                      <button className="flex-1 md:flex-none px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
+                        View CAPA
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Expanded Detail */}
-              {isExpanded && (
-                <div className="px-4 pb-4 pt-0 border-t border-border mt-0">
-                  <div className="pt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* AI Explanation */}
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Brain className="w-4 h-4 text-amber" />
-                          <span className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">AI Explanation</span>
-                        </div>
-                        <p className="text-[12px] text-text-secondary leading-relaxed">{insight.explanation}</p>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] text-text-muted uppercase tracking-wider">Evidence Reference</span>
-                        <p className="text-[12px] text-text-primary mt-0.5">{insight.evidenceRef}</p>
-                      </div>
-                    </div>
-
-                    {/* Regulation + Action */}
-                    <div className="space-y-3">
-                      {insight.regulationRef && (
-                        <div>
-                          <span className="text-[10px] text-text-muted uppercase tracking-wider">Applicable Regulation</span>
-                          <p className="text-[12px] text-text-primary mt-0.5">{insight.regulationRef}</p>
-                          {insight.regulationClause && (
-                            <p className="text-[11px] text-amber font-mono mt-0.5">{insight.regulationClause}</p>
-                          )}
-                        </div>
-                      )}
-
-                      <div>
-                        <span className="text-[10px] text-text-muted uppercase tracking-wider">Recommended Action</span>
-                        <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">{insight.recommendedAction}</p>
-                      </div>
-
-                      <div className="flex gap-2 pt-2">
-                        <button className="px-3 py-1.5 bg-amber text-mine-black text-[12px] font-medium rounded hover:bg-amber-light transition-colors">
-                          Take Action
-                        </button>
-                        <button className="px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[12px] rounded hover:text-text-primary transition-colors">
-                          Dismiss
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          )
-        })}
+
+            {/* AI Reasoning Trace */}
+            <div className="border border-border-light rounded p-4 bg-mine-black/30">
+              <h3 className="text-[10px] text-text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <Zap className="w-3 h-3 text-amber" /> AI Reasoning Trace
+              </h3>
+              <div className="flex items-center flex-wrap gap-2 text-[11px] font-mono text-text-secondary">
+                <span>Evidence analyzed</span>
+                <ArrowRight className="w-3 h-3 text-text-muted" />
+                <span>Relevant obligation identified</span>
+                <ArrowRight className="w-3 h-3 text-text-muted" />
+                <span>Risk factors evaluated</span>
+                <ArrowRight className="w-3 h-3 text-text-muted" />
+                <span className="text-text-primary">Risk classification generated</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeQuery && activeQuery !== "Why is WCL-04 high risk?" && (
+          <div className="text-center text-text-muted text-[13px] py-10 max-w-lg mx-auto">
+            <p>This query is not supported in the current demo prototype. Please select "Why is WCL-04 high risk?" to view the structured analysis capabilities.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Input Area */}
+      <div className="pt-4 border-t border-border mt-auto shrink-0 max-w-3xl mx-auto w-full">
+        <form onSubmit={handleQuerySubmit} className="relative flex items-center">
+          <Search className="absolute left-4 w-5 h-5 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Ask Khanan AI about risks, compliance, and governance..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full bg-surface-raised border border-border rounded-full py-3.5 pl-12 pr-14 text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-amber/50 transition-colors shadow-sm"
+          />
+          <button
+            type="submit"
+            disabled={!query.trim() || isTyping}
+            className="absolute right-2 p-2 bg-amber text-mine-black rounded-full hover:bg-amber-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
+
+        <div className="mt-3 flex items-start justify-center gap-1.5 text-center px-4">
+          <Info className="w-3.5 h-3.5 text-text-muted shrink-0 mt-0.5" />
+          <p className="text-[10px] text-text-muted leading-relaxed max-w-lg">
+            <strong>Prototype/demo AI outputs.</strong> This system is for demonstration purposes only. Do not claim regulatory validity or guaranteed accuracy. Always verify insights with official mine records.
+          </p>
+        </div>
       </div>
     </div>
   )
