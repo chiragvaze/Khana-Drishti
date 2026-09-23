@@ -71,7 +71,7 @@ export default function SettingsPage() {
           <User className="w-5 h-5 text-amber" />
           <h2 className="font-heading text-[16px] font-bold text-text-primary tracking-wide">USER PROFILE</h2>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-[10px] text-text-muted uppercase tracking-wider">Name</label>
             <p className="text-[13px] text-text-primary mt-0.5">{profile.name}</p>
@@ -110,7 +110,7 @@ export default function SettingsPage() {
           <Shield className="w-5 h-5 text-amber" />
           <h2 className="font-heading text-[16px] font-bold text-text-primary tracking-wide">SYSTEM INFORMATION</h2>
         </div>
-        <div className="grid grid-cols-2 gap-4 text-[12px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[12px]">
           <div>
             <span className="text-text-muted">Version</span>
             <p className="text-text-primary font-mono">1.0.0-beta (SIH Demo)</p>

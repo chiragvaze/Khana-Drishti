@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
-import { Search, ClipboardCheck, AlertTriangle, Brain } from 'lucide-react'
+import { Search, ClipboardCheck, AlertTriangle, Brain, X } from 'lucide-react'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { KPICard } from '../components/shared/KPICard'
 import { inspections } from '../data/inspections'
-import { formatDate } from '../lib/utils'
+import { formatDate, cn } from '../lib/utils'
+import { useIsMobile } from '../lib/useIsMobile'
+
 
 export default function Inspections() {
   const [search, setSearch] = useState('')
@@ -12,6 +14,7 @@ export default function Inspections() {
   const [riskFilter, setRiskFilter] = useState<string>('ALL')
   const [dateFilter, setDateFilter] = useState<string>('')
   const [selectedInspection, setSelectedInspection] = useState<string | null>(null)
+  const isMobile = useIsMobile()
 
   const filtered = useMemo(() => {
     return inspections.filter((i) => {
@@ -47,7 +50,7 @@ export default function Inspections() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-[360px]">
+        <div className="relative flex-1 min-w-0 max-w-[360px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
             type="text"
@@ -85,8 +88,8 @@ export default function Inspections() {
       </div>
 
       {/* Table + Detail */}
-      <div className="flex gap-4">
-        <div className={`bg-surface-raised border border-border rounded overflow-hidden ${selectedData ? 'flex-1' : 'w-full'}`}>
+      <div className={cn("gap-4", isMobile ? "flex flex-col" : "flex")}>
+        <div className={cn("bg-surface-raised border border-border rounded overflow-hidden", selectedData && !isMobile ? 'flex-1' : 'w-full')}>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -127,10 +130,16 @@ export default function Inspections() {
         </div>
 
         {selectedData && (
-          <div className="w-[380px] flex-shrink-0 bg-surface-raised border border-border rounded p-5 self-start sticky top-0">
+          <div className={cn(
+            isMobile
+              ? "fixed inset-0 z-50 bg-surface-raised overflow-y-auto p-4"
+              : "w-[380px] flex-shrink-0 bg-surface-raised border border-border rounded p-5 self-start sticky top-0"
+          )}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-[15px] font-bold text-text-primary tracking-wide">INSPECTION DETAIL</h3>
-              <button onClick={() => setSelectedInspection(null)} className="text-text-muted hover:text-text-secondary text-[12px]">✕</button>
+              <button onClick={() => setSelectedInspection(null)} className="text-text-muted hover:text-text-secondary p-1" aria-label="Close">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto pr-2 custom-scrollbar">
               <div className="grid grid-cols-2 gap-3">

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import * as maplibregl from 'maplibre-gl'
-import { Search, RotateCcw, ShieldAlert, Activity } from 'lucide-react'
+import { Search, RotateCcw, ShieldAlert, Activity, Filter, ChevronDown, ChevronUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { mines } from '../data/mines'
 import { cn } from '../lib/utils'
 import DemoHighlight from '../components/shared/DemoHighlight'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const riskSeverity = { HIGH: 3, MEDIUM: 2, LOW: 1 }
 
@@ -12,11 +13,14 @@ export default function GISRiskMap() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   
   const [search, setSearch] = useState('')
   const [riskFilter, setRiskFilter] = useState('ALL')
   const [subsidiaryFilter, setSubsidiaryFilter] = useState('ALL')
   const [typeFilter, setTypeFilter] = useState('ALL')
+  const [showFilters, setShowFilters] = useState(false)
+  const [showMineList, setShowMineList] = useState(!isMobile)
   
   const subsidiaries = useMemo(() => Array.from(new Set(mines.map(m => m.subsidiaryCode))), [])
   const types = useMemo(() => Array.from(new Set(mines.map(m => m.type))), [])
@@ -147,150 +151,239 @@ export default function GISRiskMap() {
   }, [filteredMines, navigate])
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-mine-black">
+    <div className={cn(
+      "overflow-hidden bg-mine-black",
+      isMobile ? "flex flex-col h-[calc(100vh-140px)]" : "flex h-[calc(100vh-64px)]"
+    )}>
       {/* Main Map Area */}
-      <div className="flex-1 flex flex-col relative border-r border-border">
+      <div className={cn(
+        "flex flex-col relative",
+        isMobile ? "flex-shrink-0" : "flex-1 border-r border-border"
+      )}
+      style={isMobile ? { height: '50vh', minHeight: '280px' } : undefined}
+      >
         {/* Controls Overlay Bar */}
-        <div className="absolute top-4 left-4 right-4 z-10 flex gap-3 p-3 bg-surface-raised/95 backdrop-blur border border-border rounded-lg shadow-2xl items-center">
-          <div className="relative w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input 
-              type="text" 
-              placeholder="Search mines..." 
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none focus:border-amber/50"
-            />
+        {isMobile ? (
+          /* Mobile: compact filter bar */
+          <div className="absolute top-2 left-2 right-2 z-10 flex gap-2 items-center">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input 
+                type="text" 
+                placeholder="Search mines..." 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-surface-raised/95 backdrop-blur border border-border rounded text-[13px] text-text-primary focus:outline-none focus:border-amber/50"
+              />
+            </div>
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={cn(
+                "p-2 border rounded transition-colors flex-shrink-0",
+                showFilters ? "bg-amber/10 border-amber/30 text-amber" : "bg-surface-raised/95 backdrop-blur border-border text-text-secondary"
+              )}
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={resetView}
+              className="p-2 bg-surface-raised/95 backdrop-blur border border-border rounded text-text-secondary flex-shrink-0"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
           </div>
-          
-          <select 
-            value={riskFilter} 
-            onChange={e => setRiskFilter(e.target.value)}
-            className="px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none"
-          >
-            <option value="ALL">All Risks</option>
-            <option value="HIGH">High Risk</option>
-            <option value="MEDIUM">Medium Risk</option>
-            <option value="LOW">Low Risk</option>
-          </select>
+        ) : (
+          /* Desktop: full filter bar */
+          <div className="absolute top-4 left-4 right-4 z-10 flex gap-3 p-3 bg-surface-raised/95 backdrop-blur border border-border rounded-lg shadow-2xl items-center">
+            <div className="relative w-64">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input 
+                type="text" 
+                placeholder="Search mines..." 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none focus:border-amber/50"
+              />
+            </div>
+            
+            <select 
+              value={riskFilter} 
+              onChange={e => setRiskFilter(e.target.value)}
+              className="px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none"
+            >
+              <option value="ALL">All Risks</option>
+              <option value="HIGH">High Risk</option>
+              <option value="MEDIUM">Medium Risk</option>
+              <option value="LOW">Low Risk</option>
+            </select>
 
-          <select 
-            value={subsidiaryFilter} 
-            onChange={e => setSubsidiaryFilter(e.target.value)}
-            className="px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none"
-          >
-            <option value="ALL">All Subsidiaries</option>
-            {subsidiaries.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+            <select 
+              value={subsidiaryFilter} 
+              onChange={e => setSubsidiaryFilter(e.target.value)}
+              className="px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none"
+            >
+              <option value="ALL">All Subsidiaries</option>
+              {subsidiaries.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
 
-          <select 
-            value={typeFilter} 
-            onChange={e => setTypeFilter(e.target.value)}
-            className="px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none"
-          >
-            <option value="ALL">All Types</option>
-            {types.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          
-          <div className="flex-1" />
+            <select 
+              value={typeFilter} 
+              onChange={e => setTypeFilter(e.target.value)}
+              className="px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none"
+            >
+              <option value="ALL">All Types</option>
+              {types.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            
+            <div className="flex-1" />
 
-          <button 
-            onClick={resetView}
-            className="px-4 py-2 bg-surface hover:bg-slate transition-colors border border-border rounded text-[13px] text-text-secondary flex items-center gap-2 whitespace-nowrap flex-shrink-0"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reset View
-          </button>
-        </div>
+            <button 
+              onClick={resetView}
+              className="px-4 py-2 bg-surface hover:bg-slate transition-colors border border-border rounded text-[13px] text-text-secondary flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset View
+            </button>
+          </div>
+        )}
+
+        {/* Mobile filter dropdown */}
+        {isMobile && showFilters && (
+          <div className="absolute top-14 left-2 right-2 z-10 bg-surface-raised/95 backdrop-blur border border-border rounded-lg p-3 shadow-2xl space-y-2">
+            <select value={riskFilter} onChange={e => setRiskFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none">
+              <option value="ALL">All Risks</option>
+              <option value="HIGH">High Risk</option>
+              <option value="MEDIUM">Medium Risk</option>
+              <option value="LOW">Low Risk</option>
+            </select>
+            <select value={subsidiaryFilter} onChange={e => setSubsidiaryFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none">
+              <option value="ALL">All Subsidiaries</option>
+              {subsidiaries.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-mine-black border border-border rounded text-[13px] text-text-primary focus:outline-none">
+              <option value="ALL">All Types</option>
+              {types.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        )}
 
         {/* Map Container */}
         <div ref={mapContainer} className="flex-1" />
 
         {/* Legend */}
-        <div className="absolute bottom-6 left-6 z-10 bg-surface-raised/95 backdrop-blur border border-border rounded-lg p-4 shadow-xl">
-          <h4 className="font-heading text-[12px] font-semibold text-text-muted mb-3">RISK SEVERITY</h4>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
+        <div className={cn(
+          "absolute z-10 bg-surface-raised/95 backdrop-blur border border-border rounded-lg shadow-xl",
+          isMobile ? "bottom-2 left-2 p-2" : "bottom-6 left-6 p-4"
+        )}>
+          <h4 className={cn("font-heading font-semibold text-text-muted mb-2", isMobile ? "text-[10px] mb-1.5" : "text-[12px] mb-3")}>RISK SEVERITY</h4>
+          <div className={cn("flex gap-3", isMobile ? "flex-row" : "flex-col gap-2")}>
+            <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[#C1292E] shadow-[0_0_8px_rgba(193,41,46,0.5)] border border-white/20" />
-              <span className="text-[12px] text-text-secondary">High Risk</span>
+              <span className={cn("text-text-secondary", isMobile ? "text-[10px]" : "text-[12px]")}>High</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[#F0A202] shadow-[0_0_8px_rgba(240,162,2,0.5)] border border-white/20" />
-              <span className="text-[12px] text-text-secondary">Medium Risk</span>
+              <span className={cn("text-text-secondary", isMobile ? "text-[10px]" : "text-[12px]")}>Medium</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[#2E7D4F] shadow-[0_0_8px_rgba(46,125,79,0.5)] border border-white/20" />
-              <span className="text-[12px] text-text-secondary">Low Risk</span>
+              <span className={cn("text-text-secondary", isMobile ? "text-[10px]" : "text-[12px]")}>Low</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Side Panel */}
-      <div className="w-[380px] flex-shrink-0 bg-surface-raised flex flex-col">
-        <div className="p-5 border-b border-border bg-mine-black/40">
-          <h2 className="font-heading text-lg text-text-primary tracking-wide">RISK-RANKED MINES</h2>
-          <p className="text-[13px] text-text-muted mt-1">Monitored sites sorted by priority.</p>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {sortedMines.map(mine => {
-            const riskColors = {
-              HIGH: 'text-red bg-red-dim border-red/20',
-              MEDIUM: 'text-amber bg-amber-dim border-amber/20',
-              LOW: 'text-green bg-green-dim border-green/20'
-            }
-            const badgeClass = riskColors[mine.riskLevel]
-            const openCapaCount = mine.riskLevel === 'HIGH' ? 7 : mine.riskLevel === 'MEDIUM' ? 3 : 0
-
-            const card = (
-              <div 
-                onClick={() => {
-                  map.current?.flyTo({ center: mine.coordinates, zoom: 9 })
-                }}
-                className="p-4 border border-border bg-mine-black rounded-lg cursor-pointer hover:border-border-light transition-all group"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-mono text-[14px] text-amber font-semibold">{mine.code}</h3>
-                    <p className="text-[12px] text-text-muted mt-1">{mine.name}</p>
-                  </div>
-                  <span className={cn("px-2.5 py-1 text-[11px] font-bold rounded-sm border", badgeClass)}>
-                    {mine.riskLevel}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-border/50">
-                  <div>
-                    <p className="text-[11px] text-text-muted mb-1 flex items-center gap-1.5"><ShieldAlert className="w-3.5 h-3.5"/> Compliance</p>
-                    <p className="font-mono text-[13px] text-text-primary">{mine.complianceScore}%</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-text-muted mb-1 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5"/> Open CAPA</p>
-                    <p className="font-mono text-[13px] text-text-primary">{openCapaCount}</p>
-                  </div>
-                </div>
-              </div>
-            )
-
-            if (mine.code === 'WCL-04') {
-              return (
-                <DemoHighlight key={mine.id} step={2} tooltip="The risk engine prioritizes WCL-04 for attention.">
-                  {card}
-                </DemoHighlight>
-              )
-            }
-
-            return <div key={mine.id}>{card}</div>
-          })}
+      {/* Right Side Panel (Desktop) / Bottom Section (Mobile) */}
+      {isMobile ? (
+        <div className="flex-1 bg-surface-raised flex flex-col overflow-hidden border-t border-border">
+          <button
+            onClick={() => setShowMineList(!showMineList)}
+            className="p-3 border-b border-border bg-mine-black/40 flex items-center justify-between flex-shrink-0"
+          >
+            <div>
+              <h2 className="font-heading text-sm text-text-primary tracking-wide">RISK-RANKED MINES</h2>
+              <p className="text-[11px] text-text-muted mt-0.5">{sortedMines.length} mines</p>
+            </div>
+            {showMineList ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronUp className="w-4 h-4 text-text-muted" />}
+          </button>
           
-          {sortedMines.length === 0 && (
-            <div className="p-8 text-center text-text-muted text-[13px]">
-              No mines match your filters.
+          {showMineList && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {sortedMines.map(mine => renderMineCard(mine, map))}
+              {sortedMines.length === 0 && (
+                <div className="p-6 text-center text-text-muted text-[13px]">No mines match your filters.</div>
+              )}
             </div>
           )}
+        </div>
+      ) : (
+        <div className="w-[380px] flex-shrink-0 bg-surface-raised flex flex-col">
+          <div className="p-5 border-b border-border bg-mine-black/40">
+            <h2 className="font-heading text-lg text-text-primary tracking-wide">RISK-RANKED MINES</h2>
+            <p className="text-[13px] text-text-muted mt-1">Monitored sites sorted by priority.</p>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {sortedMines.map(mine => renderMineCard(mine, map))}
+            {sortedMines.length === 0 && (
+              <div className="p-8 text-center text-text-muted text-[13px]">No mines match your filters.</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function renderMineCard(mine: typeof mines[0], map: React.RefObject<maplibregl.Map | null>) {
+  const riskColors = {
+    HIGH: 'text-red bg-red-dim border-red/20',
+    MEDIUM: 'text-amber bg-amber-dim border-amber/20',
+    LOW: 'text-green bg-green-dim border-green/20'
+  }
+  const badgeClass = riskColors[mine.riskLevel]
+  const openCapaCount = mine.riskLevel === 'HIGH' ? 7 : mine.riskLevel === 'MEDIUM' ? 3 : 0
+
+  const card = (
+    <div 
+      onClick={() => {
+        map.current?.flyTo({ center: mine.coordinates, zoom: 9 })
+      }}
+      className="p-3 sm:p-4 border border-border bg-mine-black rounded-lg cursor-pointer hover:border-border-light transition-all group"
+    >
+      <div className="flex justify-between items-start mb-2 sm:mb-3">
+        <div>
+          <h3 className="font-mono text-[13px] sm:text-[14px] text-amber font-semibold">{mine.code}</h3>
+          <p className="text-[11px] sm:text-[12px] text-text-muted mt-0.5">{mine.name}</p>
+        </div>
+        <span className={cn("px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[11px] font-bold rounded-sm border", badgeClass)}>
+          {mine.riskLevel}
+        </span>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-border/50">
+        <div>
+          <p className="text-[10px] sm:text-[11px] text-text-muted mb-0.5 sm:mb-1 flex items-center gap-1"><ShieldAlert className="w-3 h-3 sm:w-3.5 sm:h-3.5"/> Compliance</p>
+          <p className="font-mono text-[12px] sm:text-[13px] text-text-primary">{mine.complianceScore}%</p>
+        </div>
+        <div>
+          <p className="text-[10px] sm:text-[11px] text-text-muted mb-0.5 sm:mb-1 flex items-center gap-1"><Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5"/> Open CAPA</p>
+          <p className="font-mono text-[12px] sm:text-[13px] text-text-primary">{openCapaCount}</p>
         </div>
       </div>
     </div>
   )
+
+  if (mine.code === 'WCL-04') {
+    return (
+      <DemoHighlight key={mine.id} step={2} tooltip="The risk engine prioritizes WCL-04 for attention.">
+        {card}
+      </DemoHighlight>
+    )
+  }
+
+  return <div key={mine.id}>{card}</div>
 }

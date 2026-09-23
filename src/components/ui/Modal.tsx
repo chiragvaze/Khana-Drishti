@@ -47,7 +47,7 @@ export function Modal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
       <div 
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
         onClick={onClose} 
@@ -55,7 +55,7 @@ export function Modal({
       
       <div 
         className={cn(
-          "relative z-50 w-full max-w-lg rounded-xl border border-border bg-mine-black p-6 shadow-2xl transition-all",
+          "relative z-50 w-full max-w-[calc(100vw-24px)] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-mine-black p-4 sm:p-6 shadow-2xl transition-all",
           "animate-in fade-in zoom-in-95 duration-200",
           className
         )}
@@ -64,13 +64,14 @@ export function Modal({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 p-1"
+          aria-label="Close dialog"
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </button>
 
-        <div className="flex flex-col space-y-1.5 mb-5 text-left">
+        <div className="flex flex-col space-y-1.5 mb-5 text-left pr-8">
           <h2 className="text-lg font-heading font-semibold leading-none tracking-tight text-text-primary">
             {title}
           </h2>
@@ -86,7 +87,7 @@ export function Modal({
         </div>
 
         {footer && (
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-6">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-6 gap-2 sm:gap-0">
             {footer}
           </div>
         )}

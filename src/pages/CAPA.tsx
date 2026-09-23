@@ -256,7 +256,7 @@ export default function CAPAPage() {
   return (
     <div className="relative h-[calc(100vh-140px)] flex flex-col space-y-4">
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4 flex-shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 flex-shrink-0">
         <KPICard label="OPEN" value={openCount} subtitle="Requires action" icon={<AlertTriangle className="w-4 h-4" />} />
         <KPICard label="ESCALATED" value={escalatedCount} subtitle="Management review" variant="danger" icon={<ShieldAlert className="w-4 h-4" />} />
         <KPICard label="DUE TODAY" value={dueTodayCount} subtitle="SLA expiring" variant="warning" icon={<Clock className="w-4 h-4" />} />
@@ -266,12 +266,12 @@ export default function CAPAPage() {
       <div className="flex-1 flex flex-col bg-surface-raised border border-border rounded overflow-hidden">
         {/* Header & Tabs */}
         <div className="bg-mine-black/40 border-b border-border px-4 pt-4 shrink-0 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
             <h2 className="font-heading text-lg text-text-primary tracking-wide flex items-center gap-2">
               <ClipboardCheck className="w-5 h-5 text-amber" />
               CAPA WORKSPACE
             </h2>
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
               <input
                 type="text"
@@ -282,7 +282,7 @@ export default function CAPAPage() {
               />
             </div>
           </div>
-          <div className="flex gap-6">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide">
             {statusTabs.map(tab => {
               const count = tab === 'ALL' ? capas.length : capas.filter(c => c.status === tab).length
               return (
@@ -304,6 +304,7 @@ export default function CAPAPage() {
 
         {/* Main Table */}
         <div className="flex-1 overflow-auto">
+          <div className="min-w-[700px]">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-mine-black/95 backdrop-blur z-10">
               <tr className="border-b border-border">
@@ -356,6 +357,7 @@ export default function CAPAPage() {
               })}
             </tbody>
           </table>
+          </div>
           {filteredCapas.length === 0 && (
             <div className="p-10 text-center text-text-muted">No CAPAs match the selected filters.</div>
           )}
@@ -373,7 +375,7 @@ export default function CAPAPage() {
       {/* Right Drawer */}
       <div 
         className={cn(
-          "fixed inset-y-0 right-0 w-[600px] bg-surface-raised border-l border-border shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
+          "fixed inset-y-0 right-0 w-full sm:w-[600px] bg-surface-raised border-l border-border shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
           selectedCapa ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -518,7 +520,7 @@ export default function CAPAPage() {
               )}
 
               {/* Timeline List */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-heading text-[13px] font-semibold text-text-secondary tracking-widest mb-3">TIMELINE</h4>
                   <div className="space-y-3">

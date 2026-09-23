@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Pickaxe,
+  X,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useRole } from '../../contexts/RoleContext'
@@ -26,6 +27,12 @@ interface NavItem {
   label: string
   path: string
   roles: Role[]
+}
+
+interface SidebarProps {
+  isMobile: boolean
+  isOpen: boolean
+  onClose: () => void
 }
 
 const mainNavItems: NavItem[] = [
@@ -46,13 +53,143 @@ const bottomNavItems: Omit<NavItem, 'roles'>[] = [
   { icon: HelpCircle, label: 'Help', path: '/help' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
   const { role } = useRole()
 
   const allowedNavItems = mainNavItems.filter((item) => item.roles.includes(role))
 
+  // Prevent body scroll when mobile drawer is open
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.classList.add('drawer-open')
+    } else {
+      document.body.classList.remove('drawer-open')
+    }
+    return () => document.body.classList.remove('drawer-open')
+  }, [isMobile, isOpen])
+
+  // Close drawer on Escape
+  useEffect(() => {
+    if (!isMobile || !isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isMobile, isOpen, onClose])
+
+  // Close drawer on route change
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      onClose()
+    }
+  }, [location.pathname])
+
+  // ──────────────────────────────────────────────
+  // Mobile Drawer
+  // ──────────────────────────────────────────────
+  if (isMobile) {
+    if (!isOpen) return null
+
+    return (
+      <>
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in-backdrop"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+
+        {/* Drawer */}
+        <aside
+          className="fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-mine-black border-r border-border z-50 flex flex-col animate-slide-in-left"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
+          {/* Header */}
+          <div className="h-[56px] flex items-center justify-between px-4 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Pickaxe className="w-6 h-6 text-amber flex-shrink-0" />
+              <div className="flex flex-col leading-tight overflow-hidden">
+                <span className="font-heading text-[15px] font-bold text-text-primary tracking-wider">
+                  KHANAN DRISHTI
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 -mr-2 text-text-muted hover:text-text-primary transition-colors rounded-md"
+              aria-label="Close navigation menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Main nav */}
+          <nav className="flex-1 py-3 overflow-y-auto overflow-x-hidden">
+            <div className="space-y-0.5 px-2">
+              {allowedNavItems.map((item) => {
+                const isActive =
+                  item.path === '/dashboard'
+                    ? location.pathname === '/dashboard' || location.pathname === '/'
+                    : location.pathname.startsWith(item.path)
+
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={onClose}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded text-[14px] font-medium transition-colors relative group',
+                      isActive
+                        ? 'bg-amber-dim text-amber'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-raised'
+                    )}
+                  >
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-amber rounded-r" />
+                    )}
+                    <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                )
+              })}
+            </div>
+          </nav>
+
+          {/* Bottom nav */}
+          <div className="border-t border-border py-3 px-2 space-y-0.5 pb-safe">
+            {bottomNavItems.map((item) => {
+              const isActive = location.pathname.startsWith(item.path)
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded text-[14px] font-medium transition-colors relative group',
+                    isActive
+                      ? 'bg-amber-dim text-amber'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-raised'
+                  )}
+                >
+                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              )
+            })}
+          </div>
+        </aside>
+      </>
+    )
+  }
+
+  // ──────────────────────────────────────────────
+  // Desktop Sidebar (original behavior preserved)
+  // ──────────────────────────────────────────────
   return (
     <aside
       className={cn(

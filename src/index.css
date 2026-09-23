@@ -52,6 +52,7 @@ body {
 
 #root {
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
 
@@ -133,6 +134,30 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeIn 0.3s ease-out both;
 }
 
+/* Mobile Drawer Animations */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in-backdrop {
+  animation: fadeInBackdrop 0.2s ease-out both;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -149,4 +174,33 @@ h1, h2, h3, h4, h5, h6 {
 /* Dark mode filter for GIS map tiles */
 .maplibregl-canvas {
   filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+/* Touch-friendly horizontal scrolling for tab strips */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area utilities for modern phones */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent body scroll when mobile drawer/modal is open */
+body.drawer-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Mobile-specific scrollbar — thinner on touch */
+@media (max-width: 1023px) {
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
 }

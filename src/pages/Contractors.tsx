@@ -165,7 +165,7 @@ export default function Contractors() {
   return (
     <div className="relative h-[calc(100vh-140px)] flex flex-col space-y-4">
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4 flex-shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 flex-shrink-0">
         <KPICard label="TOTAL CONTRACTORS" value={totalContractors} subtitle="Across all mines" icon={<HardHat className="w-4 h-4" />} />
         <KPICard label="UNDER REVIEW" value={underReviewCount} subtitle="Performance watch" variant="warning" icon={<Clock className="w-4 h-4" />} />
         <KPICard label="HIGH RISK" value={highRiskCount} subtitle="Immediate attention" variant="danger" icon={<ShieldAlert className="w-4 h-4" />} />
@@ -175,11 +175,11 @@ export default function Contractors() {
       <div className="flex-1 flex flex-col bg-surface-raised border border-border rounded overflow-hidden">
         {/* Toolbar */}
         <div className="p-4 border-b border-border flex flex-wrap gap-3 items-center bg-mine-black/40 shrink-0">
-          <h2 className="font-heading text-lg text-text-primary tracking-wide mr-4 flex items-center gap-2">
+          <h2 className="font-heading text-lg text-text-primary tracking-wide mr-4 flex items-center gap-2 whitespace-nowrap">
             <Activity className="w-5 h-5 text-amber" />
             CONTRACTOR GOVERNANCE
           </h2>
-          <div className="relative w-64">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <input
               type="text"
@@ -211,6 +211,7 @@ export default function Contractors() {
 
         {/* Data Table */}
         <div className="flex-1 overflow-auto">
+          <div className="min-w-[800px]">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-mine-black/95 backdrop-blur z-10">
               <tr className="border-b border-border">
@@ -263,6 +264,7 @@ export default function Contractors() {
           {filtered.length === 0 && (
             <div className="p-10 text-center text-text-muted">No contractors match the current filters.</div>
           )}
+          </div>
         </div>
       </div>
 
@@ -277,7 +279,7 @@ export default function Contractors() {
       {/* Right Drawer */}
       <div 
         className={cn(
-          "fixed inset-y-0 right-0 w-[600px] bg-surface-raised border-l border-border shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
+          "fixed inset-y-0 right-0 w-full sm:w-[600px] bg-surface-raised border-l border-border shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
           selectedContractor ? "translate-x-0" : "translate-x-full"
         )}
       >

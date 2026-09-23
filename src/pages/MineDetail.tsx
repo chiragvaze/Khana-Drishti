@@ -57,7 +57,7 @@ export default function MineDetail() {
       <div className="bg-surface-raised border border-border rounded-md p-6">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="px-2 py-1 bg-mine-black border border-border rounded text-amber font-mono font-bold text-[13px]">{mine.code}</span>
               <h2 className="font-heading text-2xl font-bold text-text-primary tracking-wide">{mine.name}</h2>
               <StatusBadge status={mine.status} size="md" />
@@ -71,7 +71,7 @@ export default function MineDetail() {
               </div>
             </div>
           </div>
-          <div className="flex gap-6 text-[13px] bg-mine-black/50 p-4 rounded border border-border">
+          <div className="flex flex-wrap gap-3 sm:gap-6 text-[13px] bg-mine-black/50 p-3 sm:p-4 rounded border border-border">
             <div className="flex flex-col gap-1">
               <span className="text-[11px] text-text-muted uppercase tracking-wider flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Workforce</span>
               <span className="font-medium text-text-primary">{mine.totalWorkers}</span>
@@ -115,7 +115,7 @@ export default function MineDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border overflow-x-auto pb-px">
+      <div className="flex gap-2 border-b border-border overflow-x-auto scrollbar-hide pb-px">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -318,6 +318,7 @@ export default function MineDetail() {
 
         {activeTab === 'Inspections' && (
           <div className="bg-surface-raised border border-border rounded-md overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full text-left whitespace-nowrap">
               <thead>
                 <tr className="border-b border-border bg-mine-black/80">
@@ -347,6 +348,7 @@ export default function MineDetail() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

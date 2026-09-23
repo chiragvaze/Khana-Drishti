@@ -39,7 +39,7 @@ export default function AIInsightsPage() {
   }, [demoActive, currentStep, activeQuery, isTyping])
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-5xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-140px)] max-w-5xl mx-auto px-2 sm:px-0">
       {/* Header */}
       <div className="mb-8 text-center mt-4">
         <div className="inline-flex items-center justify-center p-3 bg-amber-dim rounded-full mb-4">
@@ -132,14 +132,14 @@ export default function AIInsightsPage() {
                         <span className="text-text-muted">Applicable obligation:</span> [Demo clause reference] CMR 2017: Reg 153
                       </p>
                     </div>
-                    <div className="flex gap-2 w-full md:w-auto">
-                      <button className="flex-1 md:flex-none px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                      <button className="w-full sm:w-auto px-3 py-2 sm:py-1.5 bg-surface-raised border border-border text-text-secondary text-[12px] sm:text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
                         View Evidence
                       </button>
-                      <button className="flex-1 md:flex-none px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
+                      <button className="w-full sm:w-auto px-3 py-2 sm:py-1.5 bg-surface-raised border border-border text-text-secondary text-[12px] sm:text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
                         View Obligation
                       </button>
-                      <button className="flex-1 md:flex-none px-3 py-1.5 bg-surface-raised border border-border text-text-secondary text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
+                      <button className="w-full sm:w-auto px-3 py-2 sm:py-1.5 bg-surface-raised border border-border text-text-secondary text-[12px] sm:text-[11px] rounded hover:text-text-primary hover:border-text-muted transition-colors">
                         View CAPA
                       </button>
                     </div>

@@ -156,7 +156,8 @@ export default function Reports() {
               <h2 className="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4 flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-gray-700" /> Statutory Obligations Status
               </h2>
-              <table className="w-full text-left text-sm border-collapse">
+              <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm border-collapse min-w-[500px]">
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="p-2 border border-gray-200 font-semibold text-gray-600">Obligation</th>
@@ -182,6 +183,7 @@ export default function Reports() {
                   </tr>
                 </tbody>
               </table>
+              </div>
             </section>
 
             {/* Contractor Summary */}
@@ -193,7 +195,7 @@ export default function Reports() {
                 <p className="text-gray-700 leading-relaxed mb-3">
                   <strong>Sharma Mining Services</strong>: Active at Panel 3B. Received 1 high-risk observation this period related to ventilation maintenance. Registration valid until Dec 2027.
                 </p>
-                <div className="flex gap-4 border-t border-gray-200 pt-3">
+                <div className="flex flex-col sm:flex-row gap-4 border-t border-gray-200 pt-3">
                   <div className="flex-1">
                     <span className="text-xs text-gray-500 uppercase block">Active Personnel</span>
                     <span className="font-bold text-gray-800">45</span>

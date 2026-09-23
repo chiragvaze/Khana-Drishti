@@ -130,7 +130,7 @@ export default function ComplianceRisk() {
   return (
     <div className="relative h-[calc(100vh-140px)] flex flex-col space-y-4">
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4 flex-shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 flex-shrink-0">
         <KPICard label="HIGH RISK" value={highRiskCount} subtitle="Active critical risks" variant="danger" icon={<AlertTriangle className="w-4 h-4" />} />
         <KPICard label="MEDIUM RISK" value={medRiskCount} subtitle="Elevated warnings" variant="warning" icon={<ShieldAlert className="w-4 h-4" />} />
         <KPICard label="LOW RISK" value={lowRiskCount} subtitle="Minor deviations" variant="success" icon={<CheckCircle className="w-4 h-4" />} />
@@ -140,8 +140,8 @@ export default function ComplianceRisk() {
       <div className="flex-1 bg-surface-raised border border-border rounded flex flex-col overflow-hidden">
         {/* Toolbar */}
         <div className="p-4 border-b border-border flex flex-wrap gap-3 items-center bg-mine-black/40">
-          <h2 className="font-heading text-lg text-text-primary tracking-wide mr-4">RISK ENGINE</h2>
-          <div className="relative w-64">
+          <h2 className="font-heading text-lg text-text-primary tracking-wide mr-4 whitespace-nowrap">RISK ENGINE</h2>
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <input
               type="text"
@@ -177,6 +177,7 @@ export default function ComplianceRisk() {
 
         {/* Data Table */}
         <div className="flex-1 overflow-auto">
+          <div className="min-w-[800px]">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-mine-black/95 backdrop-blur z-10">
               <tr className="border-b border-border">
@@ -225,6 +226,7 @@ export default function ComplianceRisk() {
           {filteredRisks.length === 0 && (
             <div className="p-8 text-center text-text-muted">No risks match the current filters.</div>
           )}
+          </div>
         </div>
       </div>
 
@@ -239,7 +241,7 @@ export default function ComplianceRisk() {
       {/* Right Drawer */}
       <div 
         className={cn(
-          "fixed inset-y-0 right-0 w-[550px] bg-surface-raised border-l border-border shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
+          "fixed inset-y-0 right-0 w-full sm:w-[550px] bg-surface-raised border-l border-border shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
           selectedRisk ? "translate-x-0" : "translate-x-full"
         )}
       >

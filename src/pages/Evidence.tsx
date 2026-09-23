@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Camera, Search, Image, Film, FileText, Radio, Mic, Brain } from 'lucide-react'
+import { Camera, Search, Image, Film, FileText, Radio, Mic, Brain, X } from 'lucide-react'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { KPICard } from '../components/shared/KPICard'
 import DemoHighlight from '../components/shared/DemoHighlight'
@@ -7,6 +7,7 @@ import { useDemo } from '../contexts/DemoContext'
 import { evidence } from '../data/evidence'
 import { formatDateTime, cn } from '../lib/utils'
 import type { EvidenceType } from '../data/types'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const typeIcons: Record<EvidenceType, React.ReactNode> = {
   PHOTO: <Image className="w-5 h-5" />,
@@ -33,6 +34,7 @@ export default function EvidencePage() {
   const [imageError, setImageError] = useState<boolean>(false)
 
   const { isActive: demoActive, currentStep } = useDemo()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (demoActive && currentStep === 3 && !selectedEvidence) {
@@ -109,10 +111,10 @@ export default function EvidencePage() {
       </div>
 
       {/* Content */}
-      <div className="flex gap-4">
-        <div className="flex-1">
+      <div className={cn("gap-4", isMobile ? "flex flex-col" : "flex")}>
+        <div className="flex-1 min-w-0">
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {filtered.map((ev) => (
                 <div
                   key={ev.id}
@@ -173,10 +175,16 @@ export default function EvidencePage() {
 
         {selected && (() => {
           const detailPane = (
-          <div className="w-[360px] flex-shrink-0 bg-surface-raised border border-border rounded p-5 self-start sticky top-0">
+          <div className={cn(
+            isMobile
+              ? "fixed inset-0 z-50 bg-surface-raised overflow-y-auto p-4"
+              : "w-[360px] flex-shrink-0 bg-surface-raised border border-border rounded p-5 self-start sticky top-0"
+          )}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-[15px] font-bold text-text-primary tracking-wide">EVIDENCE</h3>
-              <button onClick={() => setSelectedEvidence(null)} className="text-text-muted hover:text-text-secondary text-[12px]">✕</button>
+              <button onClick={() => setSelectedEvidence(null)} className="text-text-muted hover:text-text-secondary p-1" aria-label="Close evidence detail">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto pr-2 custom-scrollbar">
               {selected.type === 'PHOTO' ? (
