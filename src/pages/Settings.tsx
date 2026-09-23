@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { cn } from '../lib/utils'
 import { useLocation } from 'react-router-dom'
 import { useRole } from '../contexts/RoleContext'
+import KhananLogo from '../components/shared/KhananLogo'
 
 export default function SettingsPage() {
   const location = useLocation()
@@ -30,6 +31,9 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             <div className="p-4 bg-mine-black rounded border border-border">
+              <div className="mb-4">
+                <KhananLogo variant="full" size="md" />
+              </div>
               <h3 className="text-[14px] font-medium text-text-primary mb-2">About Khanan Drishti</h3>
               <p className="text-[12px] text-text-secondary leading-relaxed">
                 Khanan Drishti is an AI-based Smart Governance and Compliance Monitoring System for Indian coal mines.

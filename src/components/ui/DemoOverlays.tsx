@@ -1,5 +1,6 @@
 import { useDemo } from '../../contexts/DemoContext'
 import { Play, X, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react'
+import KhananLogo from '../shared/KhananLogo'
 
 export function DemoOverlays() {
   const { isActive, currentStep, startDemo, exitDemo, nextStep } = useDemo()
@@ -29,8 +30,8 @@ export function DemoOverlays() {
                   <Play className="w-5 h-5 sm:w-6 sm:h-6 text-amber" />
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">KHANAN DRISHTI</h2>
-                  <p className="text-amber text-xs sm:text-sm font-medium tracking-wide uppercase">From Field Evidence to Governance</p>
+                  <KhananLogo variant="full" size="sm" className="h-[36px] sm:h-[44px]" />
+                  <p className="text-amber text-xs sm:text-sm font-medium tracking-wide uppercase mt-1">From Field Evidence to Governance</p>
                 </div>
               </div>
               
@@ -78,8 +79,8 @@ export function DemoOverlays() {
                   <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">KHANAN DRISHTI</h2>
-                  <p className="text-green-500 text-xs sm:text-sm font-medium tracking-wide uppercase">From Field Evidence to Governance</p>
+                  <KhananLogo variant="full" size="sm" className="h-[36px] sm:h-[44px]" />
+                  <p className="text-green-500 text-xs sm:text-sm font-medium tracking-wide uppercase mt-1">From Field Evidence to Governance</p>
                 </div>
               </div>
               

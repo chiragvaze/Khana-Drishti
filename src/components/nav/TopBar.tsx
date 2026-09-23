@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, User, ChevronRight, Search, AlertTriangle, ShieldCheck, ClipboardCheck, Camera, Database, Check, Menu, X, Pickaxe } from 'lucide-react'
+import { Bell, ChevronDown, User, ChevronRight, Search, AlertTriangle, ShieldCheck, ClipboardCheck, Camera, Database, Check, Menu, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useRole } from '../../contexts/RoleContext'
 import type { Role } from '../../contexts/RoleContext'
 import { useDemo } from '../../contexts/DemoContext'
+import KhananLogo from '../shared/KhananLogo'
 
 interface TopBarProps {
   isMobile: boolean
@@ -198,7 +199,7 @@ export default function TopBar({ isMobile, onMenuToggle }: TopBarProps) {
           {/* Mobile: compact logo + title */}
           {isMobile ? (
             <div className="flex items-center gap-2 min-w-0">
-              <Pickaxe className="w-5 h-5 text-amber flex-shrink-0" />
+              <KhananLogo variant="icon" size="sm" className="h-[24px] w-[24px]" />
               <span className="font-heading text-[14px] font-bold text-text-primary tracking-wider truncate">
                 {currentTitle}
               </span>

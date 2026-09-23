@@ -5,6 +5,7 @@ import { formatDate } from '../lib/utils'
 import { useDemo } from '../contexts/DemoContext'
 import DemoHighlight from '../components/shared/DemoHighlight'
 import { useEffect } from 'react'
+import KhananLogo from '../components/shared/KhananLogo'
 
 const reportTypeLabels: Record<string, string> = {
   COMPLIANCE: 'Compliance',
@@ -77,6 +78,7 @@ export default function Reports() {
                 <p className="text-gray-500 text-sm mt-1">Period: September 2026</p>
               </div>
               <div className="text-right">
+                <KhananLogo variant="text" size="sm" lightBackground className="h-[24px] mb-2" />
                 <div className="bg-gray-100 px-3 py-1 rounded text-sm font-semibold text-gray-700">DRAFT</div>
                 <p className="text-xs text-gray-400 mt-2">Generated: 2026-09-20</p>
               </div>

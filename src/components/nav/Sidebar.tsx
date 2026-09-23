@@ -15,12 +15,12 @@ import {
   HelpCircle,
   ChevronLeft,
   ChevronRight,
-  Pickaxe,
   X,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useRole } from '../../contexts/RoleContext'
 import type { Role } from '../../contexts/RoleContext'
+import KhananLogo from '../shared/KhananLogo'
 
 interface NavItem {
   icon: React.ElementType
@@ -111,13 +111,11 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
         >
           {/* Header */}
           <div className="h-[56px] flex items-center justify-between px-4 border-b border-border flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <Pickaxe className="w-6 h-6 text-amber flex-shrink-0" />
-              <div className="flex flex-col leading-tight overflow-hidden">
-                <span className="font-heading text-[15px] font-bold text-text-primary tracking-wider">
-                  KHANAN DRISHTI
-                </span>
-              </div>
+            <div className="flex items-center gap-2.5">
+              <KhananLogo variant="icon" size="sm" />
+              <span className="font-heading text-[15px] font-bold text-text-primary tracking-wider">
+                KHANAN DRISHTI
+              </span>
             </div>
             <button
               onClick={onClose}
@@ -198,13 +196,16 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
       )}
     >
       {/* Logo */}
-      <div className="h-[56px] flex items-center gap-2 px-4 border-b border-border flex-shrink-0">
-        <Pickaxe className="w-6 h-6 text-amber flex-shrink-0" />
-        {!collapsed && (
-          <div className="flex flex-col leading-tight overflow-hidden">
-            <span className="font-heading text-[15px] font-bold text-text-primary tracking-wider">
-              KHANAN DRISHTI
-            </span>
+      <div className={cn(
+        'flex items-center justify-center border-b border-border flex-shrink-0 px-3',
+        collapsed ? 'h-[56px]' : 'h-[72px]'
+      )}>
+        {collapsed ? (
+          <KhananLogo variant="icon" size="sm" />
+        ) : (
+          <div className="flex items-center gap-2">
+            <KhananLogo variant="icon" size="sm" />
+            <KhananLogo variant="text" size="sm" className="h-[32px]" />
           </div>
         )}
       </div>
